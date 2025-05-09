@@ -8,8 +8,8 @@ import com.llamalad7.mixinextras.lib.apache.commons.tuple.Pair;
 import finalforeach.cosmicreach.RuntimeInfo;
 import finalforeach.cosmicreach.blocks.Block;
 import finalforeach.cosmicreach.blocks.BlockState;
-import finalforeach.cosmicreach.rendering.MeshData;
 import finalforeach.cosmicreach.rendering.RenderOrder;
+import finalforeach.cosmicreach.rendering.meshes.MeshData;
 import finalforeach.cosmicreach.rendering.shaders.GameShader;
 import finalforeach.cosmicreach.util.ArrayUtils;
 import me.zombii.horizon.world.VirtualChunk;
@@ -134,7 +134,7 @@ public class CosmicMeshingUtil {
                                 }
 
                                 if (md == null) {
-                                    md = new MeshData(new FloatArray(1024), RuntimeInfo.useSharedIndices ? null : new IntArray(), shader, renderOrder);
+                                    md = new MeshData(new FloatArray(1024), null, shader, renderOrder);
                                     meshDatas.add(md);
                                 }
 

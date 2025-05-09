@@ -2,25 +2,28 @@ package me.zombii.horizon.items;
 
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.github.puzzle.game.items.IModItem;
-import com.github.puzzle.game.items.data.DataTagManifest;
 import com.jme3.bullet.collision.PhysicsRayTestResult;
+import finalforeach.cosmicreach.blocks.BlockPosition;
 import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.entities.player.Player;
 import finalforeach.cosmicreach.items.ItemSlot;
 import finalforeach.cosmicreach.util.Identifier;
+import io.github.puzzle.cosmic.api.block.IBlockPosition;
+import io.github.puzzle.cosmic.api.entity.player.IPlayer;
+import io.github.puzzle.cosmic.api.item.IItemSlot;
+import io.github.puzzle.cosmic.item.AbstractCosmicItem;
+import io.github.puzzle.cosmic.util.APISide;
 import me.zombii.horizon.Constants;
 import me.zombii.horizon.entity.api.IPhysicEntity;
 import me.zombii.horizon.items.api.I3DItem;
 import me.zombii.horizon.util.PhysicsUtil;
 
-public class GravityGun implements IModItem, I3DItem {
+public class GravityGun extends AbstractCosmicItem implements I3DItem {
 
-    DataTagManifest manifest = new DataTagManifest();
-    Identifier modelLocation = Identifier.of(Constants.MOD_ID, "models/items/g3dj/GravityGun.g3dj");
+    Identifier modelLocation = Identifier.of(Constants.MOD_ID, "models/items/g3dj/baloon.g3dj");
 
     public GravityGun() {
-
+        super(Identifier.of(Constants.MOD_ID, "gravity_gun"));
     }
 
     @Override
@@ -34,32 +37,32 @@ public class GravityGun implements IModItem, I3DItem {
     static Ray ray = new Ray();
 
     @Override
-    public void use(ItemSlot slot, Player player) {
-        if (heldEntity != null) {
-            heldEntity.setPickedUp(!heldEntity.isPickedUp());
-            heldEntity = null;
-            return;
+    public boolean pUse(APISide side, IItemSlot itemSlot, IPlayer player, IBlockPosition targetPlaceBlockPos, IBlockPosition targetBreakBlockPos, boolean isLeftClick) {
+        if (side == APISide.SERVER || side == APISide.SINGLE_PLAYER_CLIENT && isLeftClick) {
+            if (heldEntity != null) {
+                heldEntity.setPickedUp(!heldEntity.isPickedUp());
+                heldEntity = null;
+                return true;
+            }
+
+            Vector3 rayStart = ((Player)player).getPosition().cpy().add(0, 1, 0);
+            ray.set(rayStart, ((Player)player).getEntity().viewDirection);
+            Vector3 rayEnd = rayStart.cpy().add(((Player)player).getEntity().viewDirection.cpy().scl(5));
+
+            intersectionPoint.setZero();
+            PhysicsUtil.raycast(intersectionPoint, ray, rayEnd, this::interact);
         }
 
-        Vector3 rayStart = player.getPosition().cpy().add(0, 1, 0);
-        ray.set(rayStart, player.getEntity().viewDirection);
-        Vector3 rayEnd = rayStart.cpy().add(player.getEntity().viewDirection.cpy().scl(5));
-
-        intersectionPoint.setZero();
-        PhysicsUtil.raycast(intersectionPoint, ray, rayEnd, this::interact);
+        return super.pUse(side, itemSlot, player, targetPlaceBlockPos, targetBreakBlockPos, isLeftClick);
     }
 
     public void interact(float dist, Entity e, PhysicsRayTestResult result) {
+        System.out.println("E " + ((IPhysicEntity) e).canBePickedUp());
         if (((IPhysicEntity) e).canBePickedUp()) {
             IPhysicEntity entity = (IPhysicEntity) e;
             entity.setPickedUp(!entity.isPickedUp());
             if (entity.isPickedUp()) heldEntity = entity;
         }
-    }
-
-    @Override
-    public Identifier getIdentifier() {
-        return Identifier.of(Constants.MOD_ID, "gravity_gun");
     }
 
     @Override

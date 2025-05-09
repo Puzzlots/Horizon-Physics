@@ -16,7 +16,10 @@ import java.util.List;
 public class PhysicsUtil {
 
     public static void raycast(Vector3 intersection, Ray from, Vector3 to, TriConsumer<Float, Entity, PhysicsRayTestResult> consumer) {
-        if (PhysicsThread.INSTANCE == null) return;
+        if (PhysicsThread.INSTANCE == null) {
+            System.out.println("Nuh uh");
+            return;
+        }
         from = from.cpy();
         to = to.cpy();
 

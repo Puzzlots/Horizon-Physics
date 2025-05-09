@@ -6,13 +6,14 @@ import com.badlogic.gdx.utils.IntArray;
 import finalforeach.cosmicreach.RuntimeInfo;
 import finalforeach.cosmicreach.blocks.Block;
 import finalforeach.cosmicreach.blocks.BlockState;
-import finalforeach.cosmicreach.rendering.MeshData;
 import finalforeach.cosmicreach.rendering.RenderOrder;
+import finalforeach.cosmicreach.rendering.meshes.MeshData;
 import finalforeach.cosmicreach.rendering.shaders.GameShader;
 import finalforeach.cosmicreach.savelib.blockdata.IBlockData;
 import finalforeach.cosmicreach.savelib.lightdata.blocklight.IBlockLightData;
 import finalforeach.cosmicreach.savelib.lightdata.skylight.ISkylightData;
 import finalforeach.cosmicreach.util.ArrayUtils;
+import finalforeach.cosmicreach.util.Identifier;
 import finalforeach.cosmicreach.world.Chunk;
 import me.zombii.horizon.world.PhysicsZone;
 
@@ -137,13 +138,15 @@ public class VCosmicMeshingUtil {
                                 }
 
                                 if (md == null) {
-                                    md = new MeshData(new FloatArray(1024), RuntimeInfo.useSharedIndices ? null : new IntArray(), shader, renderOrder);
+                                    md = new MeshData(new FloatArray(1024), null, shader, renderOrder);
                                     meshDatas.add(md);
                                 }
 
-//                                calculateBlockLightLevels(zone, chunk, blockLightLevels, hasNeighbouringBlockLightChunks, opaqueBitmask, localX, localY, localZ);
+                                calculateBlockLightLevels(zone, chunk, blockLightLevels, hasNeighbouringBlockLightChunks, opaqueBitmask, localX, localY, localZ);
 //                                calculateSkyLightLevels(zone, chunk, skyLightLevels, localX, localY, localZ);
+
                                 b.addVertices(md, globalX - (chunk.chunkX * 16), globalY - (chunk.chunkY * 16), globalZ - (chunk.chunkZ * 16), opaqueBitmask, blockLightLevels, skyLightLevels);
+
                             }
                         }
                     }

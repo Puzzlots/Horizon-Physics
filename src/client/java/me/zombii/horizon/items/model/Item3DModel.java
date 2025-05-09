@@ -12,14 +12,16 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.JsonReader;
 import com.github.puzzle.game.resources.PuzzleGameAssetLoader;
-import com.github.puzzle.game.engine.items.model.IPuzzleItemModel;
-import com.github.puzzle.game.engine.shaders.ItemShader;
 import finalforeach.cosmicreach.Threads;
 import finalforeach.cosmicreach.items.Item;
 import finalforeach.cosmicreach.items.ItemStack;
-import finalforeach.cosmicreach.rendering.MeshData;
 import finalforeach.cosmicreach.rendering.RenderOrder;
+import finalforeach.cosmicreach.rendering.meshes.MeshData;
 import finalforeach.cosmicreach.rendering.shaders.GameShader;
+import io.github.puzzle.cosmic.api.client.model.ICosmicItemModel;
+import io.github.puzzle.cosmic.api.item.IItem;
+import io.github.puzzle.cosmic.api.item.IItemStack;
+import io.github.puzzle.cosmic.impl.client.item.ItemShader;
 import me.zombii.horizon.items.api.I3DItem;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
@@ -27,7 +29,7 @@ import org.lwjgl.opengl.GL30;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Item3DModel implements IPuzzleItemModel {
+public class Item3DModel implements ICosmicItemModel {
 
     static G3dModelLoader loader;
     private final GameShader program;
@@ -70,7 +72,7 @@ public class Item3DModel implements IPuzzleItemModel {
         });
     }
 
-    public void renderGeneric(Vector3 pos, ItemStack stack, Camera cam, Matrix4 tmpMat, boolean isInSlot) {
+    public void renderGeneric(Vector3 pos, IItemStack stack, Camera cam, Matrix4 tmpMat, boolean isInSlot) {
         if (modelInstance.get() != null) {
             tmpMat = tmpMat.cpy();
             tmpMat.mul(new Matrix4().scl(scalar).inv());
@@ -83,7 +85,7 @@ public class Item3DModel implements IPuzzleItemModel {
     }
 
     @Override
-    public void renderInSlot(Vector3 vector3, ItemStack itemStack, Camera camera, Matrix4 matrix4, boolean useAmbientLighting) {
+    public void renderInSlot(Vector3 vector3, IItemStack itemStack, Camera camera, Matrix4 matrix4, boolean useAmbientLighting) {
         Matrix4 matrix5 = new Matrix4();
         matrix5.setToTranslation(new Vector3(0, 0, 0));
 //        matrix5.translate(0.5F, 0.2F, 0.5F);
@@ -95,8 +97,9 @@ public class Item3DModel implements IPuzzleItemModel {
         Gdx.gl.glEnable(GL30.GL_CULL_FACE);
     }
 
+
     @Override
-    public void renderAsHeldItem(Vector3 vector3, ItemStack itemStack, Camera camera, float popUpTimer, float maxPopUpTimer, float swingTimer, float maxSwingTimer) {
+    public void renderAsHeldItem(Vector3 vector3, IItemStack itemStack, Camera camera, float popUpTimer, float maxPopUpTimer, float swingTimer, float maxSwingTimer) {
         Matrix4 tmpHeldMat4 = new Matrix4();
         heldItemCamera.fieldOfView = 50;
         heldItemCamera.viewportHeight = camera.viewportHeight;
@@ -137,7 +140,7 @@ public class Item3DModel implements IPuzzleItemModel {
     }
 
     @Override
-    public void renderAsEntity(Vector3 vector3, ItemStack itemStack, Camera camera, Matrix4 matrix4) {
+    public void renderAsEntity(Vector3 vector3, IItemStack itemStack, Camera camera, Matrix4 matrix4) {
         Gdx.gl.glDisable(GL30.GL_CULL_FACE);
         matrix4.translate(0.5F, 0.2F, 0.5F);
         matrix4.scale(0.4f, 0.4f, 0.4f);

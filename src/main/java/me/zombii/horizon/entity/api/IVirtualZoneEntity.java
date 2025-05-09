@@ -26,7 +26,7 @@ public interface IVirtualZoneEntity {
         ByteArray array = new ByteArray();
         zone.chunks.forEach(c -> {
             c.region = new PhysicsRegion(zone, 0, 0, 0);
-            ChunkSaver.SaveChunk(c, array, new IChunkByteWriter() {
+            ChunkSaver.saveChunk(c, array, new IChunkByteWriter() {
                 @Override
                 public void writeInt(int i) {
                     ByteArrayUtils.writeInt(array, i);

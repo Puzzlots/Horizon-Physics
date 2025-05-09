@@ -5,28 +5,28 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.OrientedBoundingBox;
 import com.github.puzzle.core.loader.meta.EnvType;
 import com.github.puzzle.core.loader.provider.mod.entrypoint.impls.ModInitializer;
+import com.github.puzzle.core.loader.provider.mod.entrypoint.impls.PostModInitializer;
 import com.github.puzzle.core.localization.ILanguageFile;
 import com.github.puzzle.core.localization.LanguageManager;
 import com.github.puzzle.core.localization.files.LanguageFileVersion1;
 import com.github.puzzle.game.PuzzleRegistries;
 import com.github.puzzle.game.events.OnPreLoadAssetsEvent;
-import com.github.puzzle.game.events.OnRegisterBlockEvent;
 import com.github.puzzle.game.events.OnRegisterZoneGenerators;
-import com.github.puzzle.game.items.IModItem;
 import com.github.puzzle.game.resources.PuzzleGameAssetLoader;
+import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.entities.EntityCreator;
 import finalforeach.cosmicreach.items.Item;
 import finalforeach.cosmicreach.savelib.crbin.CRBinDeserializer;
 import finalforeach.cosmicreach.savelib.crbin.CRBinSerializer;
 import finalforeach.cosmicreach.util.Identifier;
-import me.zombii.horizon.blocks.Chair;
+import io.github.puzzle.cosmic.api.item.IItem;
+import io.github.puzzle.cosmic.item.AbstractCosmicItem;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import me.zombii.horizon.commands.Commands;
 import me.zombii.horizon.entity.BasicPhysicsEntity;
 import me.zombii.horizon.entity.BasicShipEntity;
 import me.zombii.horizon.entity.Cube;
 import me.zombii.horizon.entity.WorldCube;
-import me.zombii.horizon.entity.player.PlayerInfo;
 import me.zombii.horizon.items.GravityGun;
 import me.zombii.horizon.items.MoonScepter;
 import me.zombii.horizon.items.PortalGun;
@@ -34,6 +34,7 @@ import me.zombii.horizon.items.ToolGun;
 import me.zombii.horizon.items.api.I3DItem;
 import me.zombii.horizon.threading.PhysicsThread;
 import me.zombii.horizon.util.IItemRegistrar;
+import me.zombii.horizon.util.NativeLibraryLoader;
 import me.zombii.horizon.worldgen.NullGenerator;
 import me.zombii.horizon.worldgen.VoidGenerator;
 import me.zombii.horizon.worldgen.SuperFlat;
@@ -41,34 +42,25 @@ import meteordevelopment.orbit.EventHandler;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public class Horizon implements ModInitializer {
 
+
+
     @Override
     public void onInit() {
-//        if (com.github.puzzle.core.Constants.SIDE != EnvType.CLIENT)
-            PhysicsThread.init();
 
-        PlayerInfo.init();
+//        if (com.github.puzzle.core.Constants.SIDE != EnvType.CLIENT)
+        PhysicsThread.init();
 
         PuzzleRegistries.EVENT_BUS.subscribe(this);
         Commands.register();
 
-        EntityCreator.registerEntityCreator("funni-blocks:entity", () -> new WorldCube());
-        EntityCreator.registerEntityCreator("base:test", BasicPhysicsEntity::new);
-        EntityCreator.registerEntityCreator("base:test2", BasicShipEntity::new);
-
-        EntityCreator.registerEntityCreator(Constants.MOD_ID + ":rotating_entity", () -> new WorldCube());
-        EntityCreator.registerEntityCreator(Constants.MOD_ID + ":entity", () -> new WorldCube());
-        EntityCreator.registerEntityCreator(Constants.MOD_ID + ":physics_entity", BasicPhysicsEntity::new);
-        EntityCreator.registerEntityCreator(Constants.MOD_ID + ":ship", BasicShipEntity::new);
-
-        EntityCreator.registerEntityCreator(Constants.MOD_ID + ":cube", Cube::new);
-
-        IModItem.registerItem(new MoonScepter());
-        registerItem(new GravityGun());
-        registerItem(new PortalGun());
-        registerItem(new ToolGun());
+        AbstractCosmicItem.register(new MoonScepter());
+        AbstractCosmicItem.register(registerItem(new GravityGun()));
+        AbstractCosmicItem.register(registerItem(new PortalGun()));
+        AbstractCosmicItem.register(registerItem(new ToolGun()));
 
         CRBinSerializer.defaultClassSerializers.put(BoundingBox.class, (serial, name, bb) -> {
             if (bb == null) {
@@ -155,14 +147,9 @@ public class Horizon implements ModInitializer {
         });
     }
 
-    static <T extends I3DItem & IModItem & Item> T registerItem(T item) {
+    static <T extends I3DItem & IItem & Item> T registerItem(T item) {
         IItemRegistrar.registerItem(item);
         return item;
-    }
-
-    @EventHandler
-    public void onEvent(OnRegisterBlockEvent event) {
-        event.registerBlock(Chair::new);
     }
 
     @EventHandler

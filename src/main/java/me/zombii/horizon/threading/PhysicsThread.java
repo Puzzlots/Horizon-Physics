@@ -18,6 +18,7 @@ import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.savelib.blockdata.IBlockData;
 import finalforeach.cosmicreach.world.Chunk;
 import me.zombii.horizon.entity.api.IPhysicEntity;
+import me.zombii.horizon.mesh.IBlockBoundsMaker;
 import me.zombii.horizon.util.ConversionUtil;
 import me.zombii.horizon.util.NativeLibraryLoader;
 import me.zombii.horizon.world.PhysicsZone;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PhysicsThread implements TickingRunnable {
 
@@ -88,10 +90,6 @@ public class PhysicsThread implements TickingRunnable {
     void physicsInit() {
         if (isInitialized) return;
         isInitialized = true;
-        boolean success = NativeLibraryLoader.loadLibbulletjme(Constants.SIDE == EnvType.CLIENT, "Release", "Sp");
-        if (!success) {
-            throw new RuntimeException("Failed to load native library. Please contact nab138, he may need to add support for your platform.");
-        }
 
         space = new PhysicsSpace(PhysicsSpace.BroadphaseType.DBVT);
         space.setGravity(new Vector3f(0, -9.81f, 0));
@@ -270,6 +268,11 @@ public class PhysicsThread implements TickingRunnable {
 
     public static void init() {
         parent = ThreadHelper.createTicking("physics", new PhysicsThread());
+
+        boolean success = NativeLibraryLoader.loadLibbulletjme(com.github.puzzle.core.Constants.SIDE == EnvType.CLIENT, "Release", "Sp");
+        if (!success) {
+            throw new RuntimeException("Failed to load native library. Please contact nab138, he may need to add support for your platform.");
+        }
     }
 
     public static PauseableThread start() {
@@ -348,16 +351,24 @@ public class PhysicsThread implements TickingRunnable {
         return createPhysicsMesh(new CompoundCollisionShape(), chunk);
     }
 
-    public CompoundCollisionShape shapeFromBlockState(CompoundCollisionShape mesh, Vector3f vector3f, BlockState state){
-        Array<BoundingBox> boundingBoxes = new Array<>();
-        state.getAllBoundingBoxes(boundingBoxes, 0, 0, 0);
+    private static final Map<String, BoundingBox[]> blockStateArrayMap = new ConcurrentHashMap<>();
 
-        boundingBoxes.forEach(b -> {
+    public CompoundCollisionShape shapeFromBlockState(CompoundCollisionShape mesh, Vector3f vector3f, BlockState state){
+        BoundingBox[] boundingBoxes;
+        if (blockStateArrayMap.containsKey(state.getSaveKey())) {
+            boundingBoxes = blockStateArrayMap.get(state.getSaveKey());
+        } else {
+            boundingBoxes = ((IBlockBoundsMaker)state.getModel()).getBounds();
+            blockStateArrayMap.put(state.getSaveKey(), boundingBoxes);
+        }
+
+        for (BoundingBox b : boundingBoxes) {
             Vector3f halfExtents = new Vector3f((b.max.x - b.min.x) / 2, (b.max.y - b.min.y) / 2, (b.max.z - b.min.z) / 2);
             Vector3f center = new Vector3f(b.getCenterX() - 0.5f, b.getCenterY() - 0.5f, b.getCenterZ() - 0.5f);
             BoxCollisionShape boxShape = new BoxCollisionShape(halfExtents);
             mesh.addChildShape(boxShape, vector3f.add(center));
-        });
+        }
+
         return mesh;
     }
 

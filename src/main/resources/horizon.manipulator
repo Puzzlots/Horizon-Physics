@@ -1,4 +1,11 @@
 public field finalforeach/cosmicreach/entities/Entity sightRange
+public field finalforeach/cosmicreach/entities/Entity tmpEntityBoundingBox
+public field finalforeach/cosmicreach/entities/Entity tmpBlockBoundingBox
+public field finalforeach/cosmicreach/entities/Entity tmpBlockBoundingBoxes
+public field finalforeach/cosmicreach/entities/Entity tmpEntityBoundingBox2
+public field finalforeach/cosmicreach/entities/Entity tmpBlockBoundingBox2
+public field finalforeach/cosmicreach/entities/Entity footstepTimer
+public field finalforeach/cosmicreach/entities/Entity floorFriction
 
 public method finalforeach/cosmicreach/rendering/BatchCoords blockX ()I
 public method finalforeach/cosmicreach/rendering/BatchCoords blockY ()I
