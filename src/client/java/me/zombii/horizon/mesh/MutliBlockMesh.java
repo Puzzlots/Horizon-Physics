@@ -6,12 +6,14 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
+import finalforeach.cosmicreach.rendering.entities.IEntityAnimation;
+import finalforeach.cosmicreach.rendering.entities.instances.EntityModelInstance;
+import me.zombii.horizon.rendering.mesh.IHorizonMesh;
 import me.zombii.horizon.util.Vec3i;
 import finalforeach.cosmicreach.blocks.Block;
 import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.rendering.SharedQuadIndexData;
-import finalforeach.cosmicreach.rendering.blockmodels.BlockModelJson;
-import finalforeach.cosmicreach.rendering.entities.EntityModelInstance;
 import finalforeach.cosmicreach.rendering.entities.IEntityModel;
 import finalforeach.cosmicreach.rendering.entities.IEntityModelInstance;
 import finalforeach.cosmicreach.rendering.shaders.ChunkShader;
@@ -24,6 +26,7 @@ import me.zombii.horizon.world.VirtualWorld;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 public class MutliBlockMesh implements IEntityModelInstance, IHorizonMesh {
 
@@ -48,6 +51,20 @@ public class MutliBlockMesh implements IEntityModelInstance, IHorizonMesh {
     public IEntityModel getModel() {
         return new IEntityModel() {
             @Override
+            public IEntityModelInstance getNewModelInstance(Supplier<? extends IEntityModelInstance> supplier) {
+                EntityModelInstance instance = (EntityModelInstance) supplier.get();
+                instance.setEntityModel(this);
+                return instance;
+            }
+
+            @Override
+            public <T extends IEntityModelInstance> T getNewModelInstance(Class<T> aClass) {
+                EntityModelInstance instance = new EntityModelInstance();
+                instance.setEntityModel(this);
+                return (T) instance;
+            }
+
+            @Override
             public IEntityModelInstance getNewModelInstance() {
                 EntityModelInstance instance = new EntityModelInstance();
                 instance.setEntityModel(this);
@@ -67,7 +84,7 @@ public class MutliBlockMesh implements IEntityModelInstance, IHorizonMesh {
     Quaternion quaternion = new Quaternion();
 
     @Override
-    public void render(Entity _entity, Camera camera, Matrix4 tmp) {
+    public void render(Entity _entity, Camera camera, Matrix4 tmp, boolean unused) {
         if (refMap == null) return;
 
         rotTmp.idt();
@@ -100,9 +117,9 @@ public class MutliBlockMesh implements IEntityModelInstance, IHorizonMesh {
         if (ref != null) {
             MeshingThread.VirtualChunkMeshMeta meta = ref.get();
 
-            if (!BlockModelJson.useIndices) {
+//            if (!BlockModelJson.useIndices) {
                 SharedQuadIndexData.bind();
-            }
+//            }
 
             Vector3 batchPos = new Vector3(chunk.chunkPos.x() * 16, chunk.chunkPos.y() * 16, chunk.chunkPos.z() * 16);
             try {
@@ -114,6 +131,9 @@ public class MutliBlockMesh implements IEntityModelInstance, IHorizonMesh {
                 this.shader.bindOptionalMatrix4("u_modelMat", tmp);
                 this.shader.bindOptionalUniform3f("u_batchPosition", batchPos);
                 this.shader.bindOptionalUniform3f("u_sunDirection", sunDirection);
+                this.shader.bindOptionalUniform3f("cameraPosition", camera.position);
+                this.shader.bindOptionalBool("u_isItem", false);
+                this.shader.bindOptionalFloat("u_fogDensity", 0.0F);
 
                 meta.defaultLayerMesh.bind(this.shader.shader);
                 meta.defaultLayerMesh.render(this.shader.shader, GL20.GL_TRIANGLES);
@@ -129,8 +149,9 @@ public class MutliBlockMesh implements IEntityModelInstance, IHorizonMesh {
 //                this.shader.bindOptionalUniform4f("tintColor", Sky.currentSky.currentAmbientColor.cpy());
                 this.shader.bindOptionalMatrix4("u_modelMat", tmp);
                 this.shader.bindOptionalUniform3f("u_batchPosition", batchPos);
-                if (shader instanceof ChunkShader)
-                    this.shader.bindOptionalUniform3f("u_sunDirection", sunDirection);
+                this.shader.bindOptionalUniform3f("cameraPosition", camera.position);
+                this.shader.bindOptionalBool("u_isItem", false);
+                this.shader.bindOptionalUniform3f("u_sunDirection", sunDirection);
 
                 meta.semiTransparentLayerMesh.bind(this.shader.shader);
                 meta.semiTransparentLayerMesh.render(this.shader.shader, GL20.GL_TRIANGLES);
@@ -147,6 +168,8 @@ public class MutliBlockMesh implements IEntityModelInstance, IHorizonMesh {
                 this.shader.bindOptionalMatrix4("u_modelMat", tmp);
                 this.shader.bindOptionalUniform3f("u_batchPosition", batchPos);
                 this.shader.bindOptionalUniform3f("u_sunDirection", sunDirection);
+                this.shader.bindOptionalUniform3f("cameraPosition", camera.position);
+                this.shader.bindOptionalBool("u_isItem", false);
 
                 meta.transparentLayerMesh.bind(this.shader.shader);
                 meta.transparentLayerMesh.render(this.shader.shader, GL20.GL_TRIANGLES);
@@ -155,9 +178,9 @@ public class MutliBlockMesh implements IEntityModelInstance, IHorizonMesh {
                 this.shader.unbind();
             } catch (Exception ignore) {}
 
-            if (!BlockModelJson.useIndices) {
+//            if (!BlockModelJson.useIndices) {
                 SharedQuadIndexData.unbind();
-            }
+//            }
 
         }
     }
@@ -168,12 +191,33 @@ public class MutliBlockMesh implements IEntityModelInstance, IHorizonMesh {
     }
 
     @Override
-    public void setCurrentAnimation(String s) {
+    public void addAnimation(String s) {
 
     }
 
     @Override
+    public void removeAnimation(String s) {
+
+    }
+
+    @Override
+    public void removeAnimation(IEntityAnimation iEntityAnimation) {
+
+    }
+
+
+    @Override
     public void setEntityModel(IEntityModel iEntityModel) {
+
+    }
+
+    @Override
+    public Array<? extends IEntityAnimation> getAnimations() {
+        return new Array<>();
+    }
+
+    @Override
+    public void shadowAnimations(Array<? extends IEntityAnimation> array) {
 
     }
 

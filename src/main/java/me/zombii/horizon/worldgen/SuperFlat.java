@@ -7,7 +7,7 @@ import finalforeach.cosmicreach.world.Zone;
 import finalforeach.cosmicreach.worldgen.ChunkColumn;
 import finalforeach.cosmicreach.worldgen.ZoneGenerator;
 import finalforeach.cosmicreach.worldgen.noise.SimplexNoise;
-import me.zombii.horizon.Constants;
+import me.zombii.horizon.HorizonConstants;
 
 public class SuperFlat extends ZoneGenerator {
     private final float baseLevel = 64f;
@@ -27,7 +27,7 @@ public class SuperFlat extends ZoneGenerator {
 
     @Override
     public String getSaveKey() {
-        return Constants.MOD_ID + ":superflat";
+        return HorizonConstants.MOD_ID + ":superflat";
     }
 
     @Override

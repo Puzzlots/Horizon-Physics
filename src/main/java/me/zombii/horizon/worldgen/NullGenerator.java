@@ -1,17 +1,14 @@
 package me.zombii.horizon.worldgen;
 
-import finalforeach.cosmicreach.blocks.BlockState;
-import finalforeach.cosmicreach.savelib.blockdata.LayeredBlockData;
-import finalforeach.cosmicreach.world.Chunk;
 import finalforeach.cosmicreach.world.Zone;
 import finalforeach.cosmicreach.worldgen.ChunkColumn;
 import finalforeach.cosmicreach.worldgen.ZoneGenerator;
-import me.zombii.horizon.Constants;
+import me.zombii.horizon.HorizonConstants;
 
 public class NullGenerator extends ZoneGenerator {
     @Override
     public String getSaveKey() {
-        return Constants.MOD_ID + ":null";
+        return HorizonConstants.MOD_ID + ":null";
     }
 
     @Override

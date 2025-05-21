@@ -59,11 +59,11 @@ public interface IVirtualZoneEntity {
         ByteBuffer array = ByteBuffer.wrap(chunks);
 
         for (int i = 0; i < chunkCount; i++) {
-            int byteSize = ByteArrayUtils.readInt(array);
-            int chunkVer = ByteArrayUtils.readInt(array);
             int x = ByteArrayUtils.readInt(array);
             int y = ByteArrayUtils.readInt(array);
             int z = ByteArrayUtils.readInt(array);
+
+            int chunkVer = 4;
 
             Chunk chunk = new PhysicsChunk(x, y, z);
 

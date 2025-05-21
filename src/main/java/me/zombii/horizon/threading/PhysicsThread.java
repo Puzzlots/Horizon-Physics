@@ -1,10 +1,10 @@
 package me.zombii.horizon.threading;
 
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.PauseableThread;
 import com.badlogic.gdx.utils.Queue;
-import com.github.puzzle.core.Constants;
 import com.github.puzzle.core.loader.meta.EnvType;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
@@ -17,9 +17,9 @@ import finalforeach.cosmicreach.blocks.BlockState;
 import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.savelib.blockdata.IBlockData;
 import finalforeach.cosmicreach.world.Chunk;
+import me.zombii.horizon.collision.AABB;
 import me.zombii.horizon.entity.api.IPhysicEntity;
-import me.zombii.horizon.mesh.IBlockBoundsMaker;
-import me.zombii.horizon.util.ConversionUtil;
+import me.zombii.horizon.rendering.mesh.IBlockBoundsMaker;
 import me.zombii.horizon.util.NativeLibraryLoader;
 import me.zombii.horizon.world.PhysicsZone;
 import me.zombii.horizon.world.VirtualChunk;
@@ -351,10 +351,10 @@ public class PhysicsThread implements TickingRunnable {
         return createPhysicsMesh(new CompoundCollisionShape(), chunk);
     }
 
-    private static final Map<String, BoundingBox[]> blockStateArrayMap = new ConcurrentHashMap<>();
+    private static final Map<String, AABB[]> blockStateArrayMap = new ConcurrentHashMap<>();
 
     public CompoundCollisionShape shapeFromBlockState(CompoundCollisionShape mesh, Vector3f vector3f, BlockState state){
-        BoundingBox[] boundingBoxes;
+        AABB[] boundingBoxes;
         if (blockStateArrayMap.containsKey(state.getSaveKey())) {
             boundingBoxes = blockStateArrayMap.get(state.getSaveKey());
         } else {
@@ -362,11 +362,15 @@ public class PhysicsThread implements TickingRunnable {
             blockStateArrayMap.put(state.getSaveKey(), boundingBoxes);
         }
 
-        for (BoundingBox b : boundingBoxes) {
-            Vector3f halfExtents = new Vector3f((b.max.x - b.min.x) / 2, (b.max.y - b.min.y) / 2, (b.max.z - b.min.z) / 2);
-            Vector3f center = new Vector3f(b.getCenterX() - 0.5f, b.getCenterY() - 0.5f, b.getCenterZ() - 0.5f);
+        for (AABB b : boundingBoxes) {
+            Vector3 max = b.getMax();
+            Vector3 min = b.getMin();
+            Vector3 center = b.getCenter();
+
+            Vector3f halfExtents = new Vector3f((max.x - min.x) / 2, (max.y - min.y) / 2, (max.z - min.z) / 2);
+            Vector3f cc = new Vector3f(center.x - 0.5f, center.y - 0.5f, center.z - 0.5f);
             BoxCollisionShape boxShape = new BoxCollisionShape(halfExtents);
-            mesh.addChildShape(boxShape, vector3f.add(center));
+            mesh.addChildShape(boxShape, vector3f.add(cc));
         }
 
         return mesh;

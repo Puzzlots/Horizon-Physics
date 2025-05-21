@@ -12,28 +12,27 @@ import com.jme3.bullet.objects.PhysicsBody;
 import com.jme3.bullet.objects.PhysicsRigidBody;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import finalforeach.cosmicreach.GameSingletons;
 import finalforeach.cosmicreach.Threads;
 import finalforeach.cosmicreach.TickRunner;
 import finalforeach.cosmicreach.blocks.Block;
 import finalforeach.cosmicreach.blocks.BlockState;
-import finalforeach.cosmicreach.entities.DroneEntity;
 import finalforeach.cosmicreach.entities.Entity;
+import finalforeach.cosmicreach.entities.EntityUtils;
+import finalforeach.cosmicreach.entities.IDamageSource;
 import finalforeach.cosmicreach.savelib.crbin.CRBinDeserializer;
 import finalforeach.cosmicreach.savelib.crbin.CRBinSerializer;
 import finalforeach.cosmicreach.world.Zone;
-import me.zombii.horizon.Constants;
+import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import me.zombii.horizon.entity.api.IPhysicEntity;
 import me.zombii.horizon.entity.api.ISingleEntityBlock;
 import me.zombii.horizon.items.GravityGun;
-import me.zombii.horizon.mesh.IHorizonMesh;
+import me.zombii.horizon.rendering.mesh.IHorizonMesh;
 import me.zombii.horizon.threading.PhysicsThread;
 import me.zombii.horizon.util.ConversionUtil;
-import me.zombii.horizon.mesh.IMeshInstancer;
+import me.zombii.horizon.rendering.mesh.IMeshInstancer;
 import me.zombii.horizon.util.MatrixUtil;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.Random;
 import java.util.UUID;
@@ -57,7 +56,7 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
     BlockState[] states = Block.allBlockStates.values().toArray(new BlockState[0]);
 
     public Cube() {
-        super(Constants.MOD_ID + ":cube");
+        super(HorizonConstants.MOD_ID + ":cube");
 
         if (!IClientNetworkManager.isConnected()){
 //            state.set(BlockState.getInstance("base:furnace[lit=off]"));
@@ -70,7 +69,7 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
         }
 
         uuid = UUID.randomUUID();
-        rotation = new Quaternion();
+        rotation = Quaternion.DIRECTION_Z;
         lastRotation = new Quaternion();
         transform = new Matrix4();
 
@@ -107,7 +106,7 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
     }
 
     @Override
-    public void hit(float amount) {
+    public void hit(IDamageSource damageSource, float amount) {
     }
 
     @Override
@@ -131,7 +130,7 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
     boolean initialized = false;
 
     @Override
-    public void update(Zone zone, double deltaTime) {
+    public void update(Zone zone, float deltaTime) {
         PhysicsThread.alertChunk(zone.getChunkAtPosition(position));
 
         if (!IClientNetworkManager.isConnected()) {
@@ -153,10 +152,10 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
                 Vector3f vector3f = body.getPhysicsLocation(null);
                 position = ConversionUtil.fromJME(vector3f);
                 rotation = body.getPhysicsRotation(null);
-//            body.setPhysicsRotation(rotation = new Quaternion());
+//            body.setPhysicsRotation(rotation = Quaternion.DIRECTION_Z);
             }
         }
-        super.updateEntityChunk(zone);
+        EntityUtils.updateEntityChunk(zone, this);
         updatePosition();
 
 //        if (canBePickedUp() && isPickedUp()) {
@@ -187,13 +186,9 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
 
         oBoundingBox.setBounds(rBoundingBox);
         oBoundingBox.setTransform(transform);
-//        if (modelInstance == null) return;
 
-//        ChunkMeta meta = PhysicsThread.chunkMap.get(zone.getChunkAtPosition(position));
-//        if (meta != null)
-//            DebugRenderUtil.renderRigidBody(InGameAccess.getAccess().getShapeRenderer(), meta.getBody());
+//        HorizonConstants.EXEC.accept(this);
 
-//        DebugRenderUtil.renderRigidBody(InGameAccess.getAccess().getShapeRenderer(), body);
         tmpRenderPos.set(this.lastRenderPosition);
         TickRunner.INSTANCE.partTickLerp(tmpRenderPos, this.position);
         this.lastRenderPosition.set(tmpRenderPos);
@@ -201,7 +196,7 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
             tmpModelMatrix.idt();
             MatrixUtil.rotateAroundOrigin4(.5f, tmpModelMatrix, tmpRenderPos, rotation);
             if (modelInstance != null) {
-                modelInstance.render(this, worldCamera, tmpModelMatrix);
+                modelInstance.render(this, worldCamera, tmpModelMatrix, true);
             }
         }
     }

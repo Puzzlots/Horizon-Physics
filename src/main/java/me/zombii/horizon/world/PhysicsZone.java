@@ -9,7 +9,7 @@ import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
 import finalforeach.cosmicreach.GameSingletons;
 import finalforeach.cosmicreach.world.*;
 import finalforeach.cosmicreach.worldgen.ZoneGenerator;
-import me.zombii.horizon.Constants;
+import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.threading.PhysicsThread;
 import me.zombii.horizon.util.APoint3dMap;
 
@@ -37,7 +37,7 @@ public class PhysicsZone extends Zone {
     }
 
     public static PhysicsZone create(UUID uuid) {
-        return new PhysicsZone(GameSingletons.world, uuid.toString(), ZoneGenerator.getZoneGenerator(Constants.MOD_ID + ":null"));
+        return new PhysicsZone(GameSingletons.world, uuid.toString(), ZoneGenerator.getZoneGenerator(HorizonConstants.MOD_ID + ":null"));
     }
 
     @Override
@@ -52,6 +52,7 @@ public class PhysicsZone extends Zone {
 //
 //            region.putChunk(chunk);
 //        }
+        ((PhysicsChunk)chunk).setZone(this);
         this.chunks.put(chunk, chunk.chunkX, chunk.chunkY, chunk.chunkZ);
 //        super.addChunk(chunk);
         recalculateBounds();

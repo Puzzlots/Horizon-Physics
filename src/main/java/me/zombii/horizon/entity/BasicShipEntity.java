@@ -8,10 +8,12 @@ import com.badlogic.gdx.math.collision.OrientedBoundingBox;
 import com.github.puzzle.game.util.IClientNetworkManager;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import finalforeach.cosmicreach.blocks.MissingBlockStateResult;
-import finalforeach.cosmicreach.world.World;
+import finalforeach.cosmicreach.entities.EntityUtils;
+import finalforeach.cosmicreach.entities.IDamageSource;
+import finalforeach.cosmicreach.entities.components.GravityComponent;
 import me.zombii.horizon.entity.api.IPhysicEntity;
 import me.zombii.horizon.entity.api.IVirtualWorldEntity;
-import me.zombii.horizon.mesh.IMeshInstancer;
+import me.zombii.horizon.rendering.mesh.IMeshInstancer;
 import me.zombii.horizon.util.Vec3i;
 import com.jme3.bullet.objects.PhysicsBody;
 import com.jme3.bullet.objects.PhysicsRigidBody;
@@ -25,7 +27,7 @@ import finalforeach.cosmicreach.savelib.crbin.CRBinDeserializer;
 import finalforeach.cosmicreach.savelib.crbin.CRBinSerializer;
 import finalforeach.cosmicreach.world.Zone;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import me.zombii.horizon.Constants;
+import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import me.zombii.horizon.threading.PhysicsThread;
 import me.zombii.horizon.util.MatrixUtil;
@@ -48,12 +50,12 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualWo
     private Quaternion lastEularPosition;
 
     public BasicShipEntity() {
-        super(Constants.MOD_ID + ":ship");
+        super(HorizonConstants.MOD_ID + ":ship");
 
         if (!IClientNetworkManager.isConnected()) {
             if (rotation == null) rotation = new Quaternion(0, 0, 0, 0);
             if (uuid == null) uuid = UUID.randomUUID();
-            hasGravity = false;
+            removeUpdatingComponent(GravityComponent.INSTANCE);
         }
 
         world = new VirtualWorld();
@@ -63,7 +65,7 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualWo
         VirtualChunk structure11 = new VirtualChunk((short) 0, new Vec3i(-1, 0, -1));
 
         BlockState stone = BlockState.getInstance("base:stone_basalt[default]", MissingBlockStateResult.MISSING_OBJECT);
-        BlockState chair = BlockState.getInstance(Constants.MOD_ID + ":chair[default]", MissingBlockStateResult.MISSING_OBJECT);
+        BlockState chair = BlockState.getInstance(HorizonConstants.MOD_ID + ":chair[default]", MissingBlockStateResult.MISSING_OBJECT);
         for (int x = 0; x < 8; x++) {
             for (int z = 0; z < 8; z++) {
                 structure00.setBlockState(stone, x, 0, z);
@@ -104,11 +106,11 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualWo
     }
 
     @Override
-    public void hit(float amount) {
+    public void hit(IDamageSource damageSource, float amount) {
     }
 
     @Override
-    public void update(Zone zone, double deltaTime) {
+    public void update(Zone zone, float deltaTime) {
         PhysicsThread.alertChunk(zone.getChunkAtPosition(position));
         MatrixUtil.rotateAroundOrigin3(oBoundingBox, transform, position, rotation);
 
@@ -141,7 +143,7 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualWo
         }
 
         getBoundingBox(globalBoundingBox);
-        super.updateEntityChunk(zone);
+        EntityUtils.updateEntityChunk(zone, this);
         updatePosition();
     }
 
@@ -201,7 +203,7 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualWo
             tmpModelMatrix.idt();
             MatrixUtil.rotateAroundOrigin3(oBoundingBox, tmpModelMatrix, tmpRenderPos, rotation);
             if (modelInstance != null) {
-                modelInstance.render(this, worldCamera, tmpModelMatrix);
+                modelInstance.render(this, worldCamera, tmpModelMatrix, true);
             }
         }
     }

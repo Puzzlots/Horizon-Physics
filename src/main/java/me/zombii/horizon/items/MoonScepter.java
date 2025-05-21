@@ -1,37 +1,29 @@
 package me.zombii.horizon.items;
 
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Queue;
-import com.github.puzzle.game.items.IModItem;
-import com.github.puzzle.game.items.data.DataTagManifest;
-import com.github.puzzle.game.items.puzzle.BuilderWand;
 import finalforeach.cosmicreach.util.Identifier;
-import me.zombii.horizon.util.Vec3i;
-import finalforeach.cosmicreach.blocks.BlockPosition;
-import finalforeach.cosmicreach.blocks.BlockState;
+import io.github.puzzle.cosmic.api.block.IBlockPosition;
+import io.github.puzzle.cosmic.api.entity.player.IPlayer;
+import io.github.puzzle.cosmic.api.item.IItemSlot;
+import io.github.puzzle.cosmic.api.util.IIdentifier;
+import io.github.puzzle.cosmic.item.AbstractCosmicItem;
+import io.github.puzzle.cosmic.util.APISide;
 import finalforeach.cosmicreach.chat.Chat;
-import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.entities.player.Player;
-import finalforeach.cosmicreach.items.ItemSlot;
-import finalforeach.cosmicreach.world.BlockSetter;
-import me.zombii.horizon.Constants;
-import me.zombii.horizon.entity.WorldCube;
-import me.zombii.horizon.world.VirtualChunk;
-import me.zombii.horizon.world.VirtualWorld;
-import me.zombii.horizon.util.SchematicConverter;
+import me.zombii.horizon.HorizonConstants;
 
-public class MoonScepter implements IModItem {
+public class MoonScepter extends AbstractCosmicItem {
 
     WANDMODES wandmode = WANDMODES.SELECTPOS;
-    DataTagManifest tagManifest = new DataTagManifest();
-    Identifier id = Identifier.of(Constants.MOD_ID, "scepter");
+    static final Identifier id = Identifier.of(HorizonConstants.MOD_ID, "scepter");
 
     public static Vector3 pos1 = null;
     public static Vector3 pos2 = null;
     boolean nextPos = false;
 
     public MoonScepter() {
-        addTexture(IModItem.MODEL_2_5D_ITEM, Identifier.of(Constants.MOD_ID, "textures/items/MoonSeptor-MagixLoader.png"));
+        super(id);
+        addTexture(ItemModelType.ITEM_MODEL_3D, Identifier.of(HorizonConstants.MOD_ID, "textures/items/MoonSeptor-MagixLoader.png"));
     }
 
     public enum WANDMODES {
@@ -56,14 +48,14 @@ public class MoonScepter implements IModItem {
     }
 
     @Override
-    public void use(ItemSlot slot, Player player) {
-        if(player.isSneakIntended){
+    public boolean pUse(APISide side, IItemSlot itemSlot, IPlayer player, IBlockPosition targetPlaceBlockPos, IBlockPosition targetBreakBlockPos, boolean isLeftClick) {
+        if((((Player) player).isSneakIntended) && !isLeftClick && (side == APISide.SINGLE_PLAYER_CLIENT || side == APISide.SERVER)){
             //GameSingletons.openBlockEntityScreen(player, player.getZone(GameSingletons.world), this);
             int size = WANDMODES.values().length;
             if(wandmode.ordinal() == size - 1) wandmode = WANDMODES.SELECTPOS;
             else wandmode = WANDMODES.values()[wandmode.ordinal()+1];
             Chat.MAIN_CLIENT_CHAT.addMessage(null, "Mode: "+ wandmode.mode);
-            return;
+            return true;
         }
 //        switch (wandmode) {
 //            case SELECTPOS -> {
@@ -82,6 +74,7 @@ public class MoonScepter implements IModItem {
 //                convert2(player);
 //            }
 //        }
+        return super.pUse(side, itemSlot, player, targetPlaceBlockPos, targetBreakBlockPos, isLeftClick);
     }
 
     private static Vector3 FindStartingPos(Vector3 pos1, Vector3 pos2, int l, int h, int w){
@@ -152,18 +145,13 @@ public class MoonScepter implements IModItem {
     }
 
     @Override
-    public boolean isTool() {
+    public boolean pIsTool() {
         return true;
     }
 
     @Override
-    public Identifier getIdentifier() {
-        return id;
-    }
-
-    @Override
-    public DataTagManifest getTagManifest() {
-        return tagManifest;
+    public IIdentifier pGetIdentifier() {
+        return (IIdentifier) id;
     }
 
     @Override

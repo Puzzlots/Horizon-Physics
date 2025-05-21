@@ -7,14 +7,14 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.OrientedBoundingBox;
 import com.github.puzzle.game.util.IClientNetworkManager;
 import com.jme3.bullet.collision.shapes.CollisionShape;
-import finalforeach.cosmicreach.GameSingletons;
 import finalforeach.cosmicreach.blocks.MissingBlockStateResult;
+import finalforeach.cosmicreach.entities.EntityUtils;
+import finalforeach.cosmicreach.entities.components.GravityComponent;
 import finalforeach.cosmicreach.util.Identifier;
 import finalforeach.cosmicreach.world.Chunk;
-import finalforeach.cosmicreach.worldgen.ZoneGenerator;
 import me.zombii.horizon.entity.api.IPhysicEntity;
 import me.zombii.horizon.entity.api.IVirtualZoneEntity;
-import me.zombii.horizon.mesh.IMeshInstancer;
+import me.zombii.horizon.rendering.mesh.IMeshInstancer;
 import me.zombii.horizon.util.ConversionUtil;
 import me.zombii.horizon.util.Vec3i;
 import com.jme3.bullet.objects.PhysicsBody;
@@ -32,7 +32,7 @@ import finalforeach.cosmicreach.worldgen.noise.SimplexNoise;
 import me.zombii.horizon.world.PhysicsChunk;
 import me.zombii.horizon.world.PhysicsZone;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import me.zombii.horizon.Constants;
+import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import me.zombii.horizon.threading.PhysicsThread;
 import me.zombii.horizon.util.MatrixUtil;
@@ -91,30 +91,30 @@ public class WorldCube extends Entity implements IPhysicEntity, IVirtualZoneEnti
     public OrientedBoundingBox oBoundingBox = new OrientedBoundingBox();
 
     public WorldCube(PhysicsZone world) {
-        super(Identifier.of(Constants.MOD_ID, "entity").toString());
+        super(Identifier.of(HorizonConstants.MOD_ID, "entity").toString());
         this.world = world;
         uuid = UUID.randomUUID();
         world.rebuildCollisionShape();
         body = new PhysicsRigidBody(world.CCS);
 
         Threads.runOnMainThread(() -> modelInstance = IMeshInstancer.createZoneMesh(world));
-        hasGravity = false;
         transform.idt();
-        lastRotation = new Quaternion();
+        lastRotation = Quaternion.DIRECTION_Z;
+        removeUpdatingComponent(GravityComponent.INSTANCE);
     }
 
     public WorldCube() {
-        super(Constants.MOD_ID + ":entity");
-        hasGravity = false;
+        super(HorizonConstants.MOD_ID + ":entity");
+        removeUpdatingComponent(GravityComponent.INSTANCE);
 
         if (uuid == null)
             uuid = UUID.randomUUID();
 
         world = PhysicsZone.create(uuid);
         if (!IClientNetworkManager.isConnected()) {
-            for (int x = -2; x < 2; x++) {
+            for (int x = -4; x < 4; x++) {
                 for (int y = 0; y < 7; y++) {
-                    for (int z = -2; z < 2; z++) {
+                    for (int z = -4; z < 4; z++) {
 //            for (int x = 0; x < 1; x++) {
 //                for (int y = 0; y < 2; y++) {
 //                    for (int z = 0; z < 1; z++) {
@@ -138,7 +138,7 @@ public class WorldCube extends Entity implements IPhysicEntity, IVirtualZoneEnti
             Threads.runOnMainThread(() -> modelInstance = IMeshInstancer.createZoneMesh(world));
         }
 
-        lastRotation = new Quaternion();
+        lastRotation = Quaternion.DIRECTION_Z;
     }
 
     @Override
@@ -156,16 +156,20 @@ public class WorldCube extends Entity implements IPhysicEntity, IVirtualZoneEnti
             tmpModelMatrix.idt();
             MatrixUtil.rotateAroundOrigin2(oBoundingBox, tmpModelMatrix, tmpRenderPos, rotation);
             if (modelInstance != null) {
-                modelInstance.render(this, worldCamera, tmpModelMatrix);
+                modelInstance.render(this, worldCamera, tmpModelMatrix, true);
             }
         }
     }
 
     boolean initialized = false;
 
+    float rotX = 0;
+
     @Override
-    public void update(Zone zone, double deltaTime) {
+    public void update(Zone zone, float deltaTime) {
         PhysicsThread.alertChunk(zone.getChunkAtPosition(position));
+        transform.rotate(1, 0, 1, rotX+=10);
+        body.setPhysicsRotation(getEularRotation());
 
         if (!IClientNetworkManager.isConnected()){
             MatrixUtil.rotateAroundOrigin2(oBoundingBox, transform, position, rotation);
@@ -185,7 +189,7 @@ public class WorldCube extends Entity implements IPhysicEntity, IVirtualZoneEnti
             } else {
                 Vector3f vector3f = body.getPhysicsLocation(null);
                 position = ConversionUtil.fromJME(vector3f);
-//                rotation = rigidBody.getPhysicsRotation(null);
+//                rotation = rigidBody.getPhysicsRotation(null)
             }
 
             if (world.CCS_WAS_REBUILT) {
@@ -203,12 +207,13 @@ public class WorldCube extends Entity implements IPhysicEntity, IVirtualZoneEnti
 
             body.setPhysicsRotation(getEularRotation());
         }
-        super.updateEntityChunk(zone);
+        EntityUtils.updateEntityChunk(zone, this);
         updatePosition();
 
         if (!((ExtendedBoundingBox)localBoundingBox).hasInnerBounds()) {
             ((ExtendedBoundingBox)localBoundingBox).setInnerBounds(oBoundingBox);
         }
+        rotX++;
 
         getBoundingBox(globalBoundingBox);
     }

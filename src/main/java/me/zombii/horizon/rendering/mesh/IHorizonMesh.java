@@ -1,4 +1,4 @@
-package me.zombii.horizon.mesh;
+package me.zombii.horizon.rendering.mesh;
 
 public interface IHorizonMesh {
 

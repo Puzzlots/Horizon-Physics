@@ -2,9 +2,9 @@ package me.zombii.horizon.world;
 
 import com.badlogic.gdx.utils.Queue;
 import finalforeach.cosmicreach.blocks.MissingBlockStateResult;
+import finalforeach.cosmicreach.util.constants.Direction;
 import me.zombii.horizon.util.Vec3i;
 import finalforeach.cosmicreach.blocks.BlockState;
-import finalforeach.cosmicreach.constants.Direction;
 import me.zombii.horizon.world.lighting.BlockLightPropagator;
 
 import java.io.DataInputStream;

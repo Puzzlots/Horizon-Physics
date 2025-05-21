@@ -8,9 +8,11 @@ import com.badlogic.gdx.math.collision.OrientedBoundingBox;
 import com.github.puzzle.game.util.IClientNetworkManager;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import finalforeach.cosmicreach.blocks.MissingBlockStateResult;
+import finalforeach.cosmicreach.entities.EntityUtils;
+import finalforeach.cosmicreach.entities.components.GravityComponent;
 import me.zombii.horizon.entity.api.IPhysicEntity;
 import me.zombii.horizon.entity.api.IVirtualZoneEntity;
-import me.zombii.horizon.mesh.IMeshInstancer;
+import me.zombii.horizon.rendering.mesh.IMeshInstancer;
 import me.zombii.horizon.util.Vec3i;
 import com.jme3.bullet.objects.PhysicsBody;
 import com.jme3.bullet.objects.PhysicsRigidBody;
@@ -26,7 +28,7 @@ import finalforeach.cosmicreach.world.Zone;
 import me.zombii.horizon.world.PhysicsChunk;
 import me.zombii.horizon.world.PhysicsZone;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import me.zombii.horizon.Constants;
+import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import me.zombii.horizon.threading.PhysicsThread;
 import me.zombii.horizon.util.MatrixUtil;
@@ -46,8 +48,8 @@ public class BasicPhysicsEntity extends Entity implements IPhysicEntity, IVirtua
     public PhysicsZone world;
 
     public BasicPhysicsEntity() {
-        super(Constants.MOD_ID + ":physics_entity");
-        hasGravity = false;
+        super(HorizonConstants.MOD_ID + ":physics_entity");
+        removeUpdatingComponent(GravityComponent.INSTANCE);
 
         if (uuid == null)
             uuid = UUID.randomUUID();
@@ -55,7 +57,7 @@ public class BasicPhysicsEntity extends Entity implements IPhysicEntity, IVirtua
         world = PhysicsZone.create(uuid);
 
         if (!IClientNetworkManager.isConnected()) {
-            if (rotation == null) rotation = new Quaternion(0, 0, 0, 0);
+            if (rotation == null) rotation = Quaternion.DIRECTION_Z;
             world = PhysicsZone.create(uuid);
 
             PhysicsChunk structure00 = new PhysicsChunk(new Vec3i(0, 0, 0));
@@ -73,7 +75,7 @@ public class BasicPhysicsEntity extends Entity implements IPhysicEntity, IVirtua
                     structure11.setBlockState(stone, x + 8, 0, z + 8);
                 }
             }
-            BlockState chair = BlockState.getInstance(Constants.MOD_ID + ":chair[default]", MissingBlockStateResult.MISSING_OBJECT);
+            BlockState chair = BlockState.getInstance(HorizonConstants.MOD_ID + ":chair[default]", MissingBlockStateResult.MISSING_OBJECT);
             structure00.setBlockState(light, 0, 1, 0);
             structure01.setBlockState(light, 15, 1, 0);
             structure10.setBlockState(light, 0, 1, 15);
@@ -93,7 +95,7 @@ public class BasicPhysicsEntity extends Entity implements IPhysicEntity, IVirtua
         }
 
         transform.idt();
-        lastEularRotation = new Quaternion();
+        lastEularRotation = Quaternion.DIRECTION_Z;
     }
 
     public OrientedBoundingBox oBoundingBox = new OrientedBoundingBox();
@@ -113,7 +115,7 @@ public class BasicPhysicsEntity extends Entity implements IPhysicEntity, IVirtua
     boolean initialized = false;
 
     @Override
-    public void update(Zone zone, double deltaTime) {
+    public void update(Zone zone, float deltaTime) {
         PhysicsThread.alertChunk(zone.getChunkAtPosition(position));
 
         MatrixUtil.rotateAroundOrigin3(oBoundingBox, transform, position, rotation);
@@ -149,7 +151,7 @@ public class BasicPhysicsEntity extends Entity implements IPhysicEntity, IVirtua
             System.out.println("rebuilt");
         }
         body.setPhysicsRotation(getEularRotation());
-        super.updateEntityChunk(zone);
+        EntityUtils.updateEntityChunk(zone, this);
         updatePosition();
 
         if (!((ExtendedBoundingBox)localBoundingBox).hasInnerBounds()) {
@@ -205,7 +207,7 @@ public class BasicPhysicsEntity extends Entity implements IPhysicEntity, IVirtua
             tmpModelMatrix.idt();
             MatrixUtil.rotateAroundOrigin3(oBoundingBox, tmpModelMatrix, tmpRenderPos, rotation);
             if (modelInstance != null) {
-                modelInstance.render(this, worldCamera, tmpModelMatrix);
+                modelInstance.render(this, worldCamera, tmpModelMatrix, true);
             }
         }
     }

@@ -1,6 +1,6 @@
 package me.zombii.horizon.mixins;
 
-import me.zombii.horizon.mesh.IPhysicChunk;
+import me.zombii.horizon.rendering.mesh.IPhysicChunk;
 
 public class ChunkMixin implements IPhysicChunk {
 

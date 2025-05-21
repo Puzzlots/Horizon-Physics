@@ -26,12 +26,6 @@ public class BlockSelectionMixin {
 
     @Shadow private Ray ray;
 
-    @Shadow private BoundingBox tmpBoundingBox;
-
-    @Shadow private Vector3 intersectionPoint;
-
-    @Shadow private float maximumRaycastDist;
-
 //    /**
 //     * @author
 //     * @reason

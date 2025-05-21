@@ -5,26 +5,26 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader;
 import com.github.puzzle.game.resources.PuzzleGameAssetLoader;
-import com.github.puzzle.game.items.IModItem;
-import com.github.puzzle.game.items.data.DataTagManifest;
 import finalforeach.cosmicreach.Threads;
 import finalforeach.cosmicreach.util.Identifier;
-import me.zombii.horizon.Constants;
+import io.github.puzzle.cosmic.api.util.IIdentifier;
+import io.github.puzzle.cosmic.item.AbstractCosmicItem;
+import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.items.api.I3DItem;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-public class PortalGun implements IModItem, I3DItem {
+public class PortalGun extends AbstractCosmicItem implements I3DItem {
 
-    DataTagManifest manifest = new DataTagManifest();
-    Identifier modelLocation = Identifier.of(Constants.MOD_ID, "models/items/g3dj/Portal Gun.g3dj");
+    static final Identifier modelLocation = Identifier.of(HorizonConstants.MOD_ID, "models/items/g3dj/Portal Gun.g3dj");
 
     public PortalGun() {
+        super(Identifier.of(HorizonConstants.MOD_ID, "portal_gun"));
     }
 
     @Override
-    public Identifier getIdentifier() {
-        return Identifier.of(Constants.MOD_ID, "portal_gun");
+    public IIdentifier pGetIdentifier() {
+        return (IIdentifier) Identifier.of(HorizonConstants.MOD_ID, "portal_gun");
     }
 
     @Override
@@ -40,11 +40,6 @@ public class PortalGun implements IModItem, I3DItem {
     @Override
     public Identifier getModelLocation() {
         return modelLocation;
-    }
-
-    @Override
-    public DataTagManifest getTagManifest() {
-        return manifest;
     }
 
     @Override

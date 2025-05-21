@@ -3,9 +3,7 @@ package me.zombii.horizon;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.OrientedBoundingBox;
-import com.github.puzzle.core.loader.meta.EnvType;
 import com.github.puzzle.core.loader.provider.mod.entrypoint.impls.ModInitializer;
-import com.github.puzzle.core.loader.provider.mod.entrypoint.impls.PostModInitializer;
 import com.github.puzzle.core.localization.ILanguageFile;
 import com.github.puzzle.core.localization.LanguageManager;
 import com.github.puzzle.core.localization.files.LanguageFileVersion1;
@@ -13,8 +11,6 @@ import com.github.puzzle.game.PuzzleRegistries;
 import com.github.puzzle.game.events.OnPreLoadAssetsEvent;
 import com.github.puzzle.game.events.OnRegisterZoneGenerators;
 import com.github.puzzle.game.resources.PuzzleGameAssetLoader;
-import finalforeach.cosmicreach.entities.Entity;
-import finalforeach.cosmicreach.entities.EntityCreator;
 import finalforeach.cosmicreach.items.Item;
 import finalforeach.cosmicreach.savelib.crbin.CRBinDeserializer;
 import finalforeach.cosmicreach.savelib.crbin.CRBinSerializer;
@@ -23,18 +19,10 @@ import io.github.puzzle.cosmic.api.item.IItem;
 import io.github.puzzle.cosmic.item.AbstractCosmicItem;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import me.zombii.horizon.commands.Commands;
-import me.zombii.horizon.entity.BasicPhysicsEntity;
-import me.zombii.horizon.entity.BasicShipEntity;
-import me.zombii.horizon.entity.Cube;
-import me.zombii.horizon.entity.WorldCube;
-import me.zombii.horizon.items.GravityGun;
-import me.zombii.horizon.items.MoonScepter;
-import me.zombii.horizon.items.PortalGun;
-import me.zombii.horizon.items.ToolGun;
+import me.zombii.horizon.items.*;
 import me.zombii.horizon.items.api.I3DItem;
 import me.zombii.horizon.threading.PhysicsThread;
 import me.zombii.horizon.util.IItemRegistrar;
-import me.zombii.horizon.util.NativeLibraryLoader;
 import me.zombii.horizon.worldgen.NullGenerator;
 import me.zombii.horizon.worldgen.VoidGenerator;
 import me.zombii.horizon.worldgen.SuperFlat;
@@ -42,7 +30,6 @@ import meteordevelopment.orbit.EventHandler;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 public class Horizon implements ModInitializer {
 
@@ -61,6 +48,7 @@ public class Horizon implements ModInitializer {
         AbstractCosmicItem.register(registerItem(new GravityGun()));
         AbstractCosmicItem.register(registerItem(new PortalGun()));
         AbstractCosmicItem.register(registerItem(new ToolGun()));
+        AbstractCosmicItem.register(new LidarGun());
 
         CRBinSerializer.defaultClassSerializers.put(BoundingBox.class, (serial, name, bb) -> {
             if (bb == null) {
@@ -163,7 +151,7 @@ public class Horizon implements ModInitializer {
     public void onEvent(OnPreLoadAssetsEvent event) {
         ILanguageFile lang = null;
         try {
-            lang = LanguageFileVersion1.loadLanguageFile(Objects.requireNonNull(PuzzleGameAssetLoader.locateAsset(Identifier.of(Constants.MOD_ID, "languages/en-US.json"))));
+            lang = LanguageFileVersion1.loadLanguageFile(Objects.requireNonNull(PuzzleGameAssetLoader.locateAsset(Identifier.of(HorizonConstants.MOD_ID, "languages/en-US.json"))));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

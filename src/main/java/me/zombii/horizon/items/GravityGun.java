@@ -1,29 +1,36 @@
 package me.zombii.horizon.items;
 
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.github.puzzle.game.resources.PuzzleGameAssetLoader;
 import com.jme3.bullet.collision.PhysicsRayTestResult;
-import finalforeach.cosmicreach.blocks.BlockPosition;
+import finalforeach.cosmicreach.Threads;
 import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.entities.player.Player;
-import finalforeach.cosmicreach.items.ItemSlot;
 import finalforeach.cosmicreach.util.Identifier;
 import io.github.puzzle.cosmic.api.block.IBlockPosition;
 import io.github.puzzle.cosmic.api.entity.player.IPlayer;
 import io.github.puzzle.cosmic.api.item.IItemSlot;
 import io.github.puzzle.cosmic.item.AbstractCosmicItem;
 import io.github.puzzle.cosmic.util.APISide;
-import me.zombii.horizon.Constants;
+import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.entity.api.IPhysicEntity;
 import me.zombii.horizon.items.api.I3DItem;
 import me.zombii.horizon.util.PhysicsUtil;
+import net.mgsx.gltf.loaders.glb.GLBLoader;
+import net.mgsx.gltf.scene3d.scene.SceneAsset;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 public class GravityGun extends AbstractCosmicItem implements I3DItem {
 
-    Identifier modelLocation = Identifier.of(Constants.MOD_ID, "models/items/g3dj/baloon.g3dj");
+    Identifier modelLocation = Identifier.of(HorizonConstants.MOD_ID, "models/items/g3dj/PhysicsGun.glb");
 
     public GravityGun() {
-        super(Identifier.of(Constants.MOD_ID, "gravity_gun"));
+        super(Identifier.of(HorizonConstants.MOD_ID, "gravity_gun"));
     }
 
     @Override
@@ -75,17 +82,17 @@ public class GravityGun extends AbstractCosmicItem implements I3DItem {
         return modelLocation;
     }
 
-//    @Override
-//    public void loadModel(G3dModelLoader modelLoader, AtomicReference<ModelInstance> model) {
-//        final FileHandle modelHandle = PuzzleGameAssetLoader.locateAsset(getModelLocation());
-//
-//        Threads.runOnMainThread(() -> {
-//            GLBLoader loader = new GLBLoader();
-//            SceneAsset model1 = loader.load(modelHandle, true);
-//
-//            ModelInstance instance = new ModelInstance(model1.scene.model);
-//
-//            model.set(instance);
-//        });
-//    }
+    @Override
+    public void loadModel(G3dModelLoader modelLoader, AtomicReference<ModelInstance> model) {
+        final FileHandle modelHandle = PuzzleGameAssetLoader.locateAsset(getModelLocation());
+
+        Threads.runOnMainThread(() -> {
+            GLBLoader loader = new GLBLoader();
+            SceneAsset model1 = loader.load(modelHandle, true);
+
+            ModelInstance instance = new ModelInstance(model1.scene.model);
+
+            model.set(instance);
+        });
+    }
 }

@@ -4,6 +4,7 @@
   "package": "me.zombii.horizon.mixins.client",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "BlockModelJsonMixin",
     "BlockSelectionMixin",
     "InGameMixin",
     "MainMenuMixin",

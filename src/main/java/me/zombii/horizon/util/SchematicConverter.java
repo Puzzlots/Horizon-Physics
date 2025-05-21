@@ -1,11 +1,10 @@
 package me.zombii.horizon.util;
 
-import com.github.puzzle.game.worldgen.schematics.Schematic;
 import me.zombii.horizon.world.VirtualWorld;
 
 public class SchematicConverter {
 
-    public static VirtualWorld structureMapFromSchematic(Schematic schematic) {
+//    public static VirtualWorld structureMapFromSchematic(Schematic schematic) {
 //        StructureWorld world = new StructureWorld();
 //
 //        Structure structure = new Structure((short) 0, new Identifier(Constants.MOD_ID, "0"));
@@ -54,7 +53,7 @@ public class SchematicConverter {
 //            }
 //        }
 
-        return null;
-    }
+//        return null;
+//    }
 
 }

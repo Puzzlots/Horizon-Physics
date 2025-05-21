@@ -2,6 +2,7 @@ package me.zombii.horizon.util;
 
 import com.badlogic.gdx.math.Vector3;
 import com.jme3.bounding.BoundingBox;
+import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 
@@ -31,4 +32,9 @@ public class ConversionUtil {
         return new com.badlogic.gdx.math.collision.BoundingBox(fromJME(vec.getMin(null)), fromJME(vec.getMax(null)));
     }
 
+    public static BoxCollisionShape toCollisionShape(com.badlogic.gdx.math.collision.BoundingBox globalBoundingBox) {
+        BoundingBox box = toJME(globalBoundingBox);
+
+        return new BoxCollisionShape(box.getExtent(null));
+    }
 }

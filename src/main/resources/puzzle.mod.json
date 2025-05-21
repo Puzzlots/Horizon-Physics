@@ -16,6 +16,9 @@
     ],
     "client_preInit": [
       "me.zombii.horizon.HorizonClient"
+    ],
+    "client_postInit": [
+      "me.zombii.horizon.HorizonClient"
     ]
   },
   "mixins": [

@@ -5,13 +5,12 @@ import com.badlogic.gdx.utils.PauseableThread;
 import com.badlogic.gdx.utils.Queue;
 import finalforeach.cosmicreach.Threads;
 import finalforeach.cosmicreach.blocks.Block;
-import finalforeach.cosmicreach.rendering.MeshData;
 import finalforeach.cosmicreach.rendering.SharedQuadIndexData;
-import finalforeach.cosmicreach.rendering.blockmodels.BlockModelJson;
 import finalforeach.cosmicreach.rendering.meshes.GameMesh;
+import finalforeach.cosmicreach.rendering.meshes.MeshData;
 import finalforeach.cosmicreach.rendering.shaders.GameShader;
 import finalforeach.cosmicreach.world.Chunk;
-import me.zombii.horizon.mesh.IPhysicChunk;
+import me.zombii.horizon.rendering.mesh.IPhysicChunk;
 import me.zombii.horizon.util.CosmicMeshingUtil;
 import me.zombii.horizon.util.VCosmicMeshingUtil;
 import me.zombii.horizon.world.PhysicsZone;
@@ -144,16 +143,16 @@ public class MeshingThread implements Runnable {
     }
 
     private GameMesh buildMesh(MeshData data) {
-        if (BlockModelJson.useIndices) {
-            return data.toIntIndexedMesh(true);
-        } else {
+//        if (BlockModelJson.useIndices) {
+//            return data.toIntIndexedMesh(true);
+//        } else {
             GameMesh mesh = data.toSharedIndexMesh(true);
             if (mesh != null) {
                 int numIndices = (mesh.getNumVertices() * 6) / 4;
                 SharedQuadIndexData.allowForNumIndices(numIndices, false);
             }
             return mesh;
-        }
+//        }
     }
 
     public static void clear() {

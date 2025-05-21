@@ -2,7 +2,7 @@ package me.zombii.horizon.world;
 
 import com.badlogic.gdx.utils.Pool;
 import finalforeach.cosmicreach.blocks.BlockState;
-import finalforeach.cosmicreach.constants.Direction;
+import finalforeach.cosmicreach.util.constants.Direction;
 
 import static me.zombii.horizon.world.VirtualChunk.to1DCoords;
 

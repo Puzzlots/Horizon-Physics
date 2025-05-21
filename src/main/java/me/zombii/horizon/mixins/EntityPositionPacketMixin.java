@@ -22,7 +22,7 @@ public class EntityPositionPacketMixin extends GamePacket {
 
     EntityUniqueId entityId = new EntityUniqueId();
     public Vector3 position = new Vector3();
-    public Quaternion rotation = new Quaternion();
+    public Quaternion rotation = Quaternion.DIRECTION_Z;
     public Vector3 viewDir = new Vector3();
     public Vector3 viewDirOff = new Vector3();
     public BoundingBox box = new BoundingBox();

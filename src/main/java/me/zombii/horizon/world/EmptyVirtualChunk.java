@@ -1,10 +1,10 @@
 package me.zombii.horizon.world;
 
 import finalforeach.cosmicreach.blocks.MissingBlockStateResult;
+import finalforeach.cosmicreach.util.constants.Direction;
 import me.zombii.horizon.util.Vec3i;
 import finalforeach.cosmicreach.blocks.Block;
 import finalforeach.cosmicreach.blocks.BlockState;
-import finalforeach.cosmicreach.constants.Direction;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;

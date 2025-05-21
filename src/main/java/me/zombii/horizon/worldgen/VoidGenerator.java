@@ -6,7 +6,7 @@ import finalforeach.cosmicreach.world.Chunk;
 import finalforeach.cosmicreach.world.Zone;
 import finalforeach.cosmicreach.worldgen.ChunkColumn;
 import finalforeach.cosmicreach.worldgen.ZoneGenerator;
-import me.zombii.horizon.Constants;
+import me.zombii.horizon.HorizonConstants;
 
 public class VoidGenerator extends ZoneGenerator {
     private final int softMaxY = 255;
@@ -17,7 +17,7 @@ public class VoidGenerator extends ZoneGenerator {
 
     @Override
     public String getSaveKey() {
-        return Constants.MOD_ID + ":void";
+        return HorizonConstants.MOD_ID + ":void";
     }
 
     @Override

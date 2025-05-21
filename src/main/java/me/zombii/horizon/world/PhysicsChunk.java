@@ -1,12 +1,16 @@
 package me.zombii.horizon.world;
 
+import finalforeach.cosmicreach.blockentities.BlockEntity;
+import finalforeach.cosmicreach.blocks.Block;
 import finalforeach.cosmicreach.blocks.BlockState;
-import finalforeach.cosmicreach.constants.Direction;
 import finalforeach.cosmicreach.savelib.lightdata.blocklight.BlockLightLayeredData;
+import finalforeach.cosmicreach.util.constants.Direction;
 import finalforeach.cosmicreach.world.Chunk;
 import finalforeach.cosmicreach.world.Zone;
-import me.zombii.horizon.mesh.IPhysicChunk;
+import me.zombii.horizon.rendering.mesh.IPhysicChunk;
 import me.zombii.horizon.util.Vec3i;
+
+import java.lang.reflect.Field;
 
 public class PhysicsChunk extends Chunk implements IPhysicChunk {
 
@@ -42,11 +46,39 @@ public class PhysicsChunk extends Chunk implements IPhysicChunk {
     public void setBlockState(BlockState blockState, int x, int y, int z) {
         if (blockData == null) initChunkData();
 
-        super.setBlockState(blockState, x, y, z);
+        Field field;
+        try {
+            field = Chunk.class.getDeclaredField("blockEntities");
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+        field.setAccessible(true);
+
+        this.blockData = this.blockData.setBlockValue(blockState, x, y, z);
+        Block block = blockState.getBlock();
+        if (block.blockEntityId != null) {
+            BlockEntity be = this.setBlockEntity(blockState, x, y, z);
+            be.onSetBlockState(blockState);
+        } else {
+            try {
+                if (field.get(this) != null) {
+                    this.setBlockEntityDirect(blockState, (BlockEntity)null, x, y, z, true);
+                }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        this.isSaved = false;
         needsRemeshing = true;
     }
 
-//    @Override
+    @Override
+    public Zone getZone() {
+        return zone;
+    }
+
+    //    @Override
 //    public BlockState getBlockState(int localX, int localY, int localZ) {
 //        if (this.blockData == null) {
 //            return Block.getBlockStateInstance("base:air[default]");
@@ -63,5 +95,11 @@ public class PhysicsChunk extends Chunk implements IPhysicChunk {
     @Override
     public void setNeedsRemeshing(boolean remeshing) {
         needsRemeshing = remeshing;
+    }
+
+    Zone zone;
+
+    public void setZone(PhysicsZone physicsZone) {
+        this.zone = physicsZone;
     }
 }

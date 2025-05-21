@@ -6,7 +6,9 @@
   "mixins": [
     "BoundingBoxMixin",
     "CollisionMeshInvalidator",
+    "DummyBlockModelJsonMixin",
     "EntityPositionPacketMixin",
+    "FixupMixin",
     "IntersectorMixin",
     "PlayerEntityMixin"
   ],

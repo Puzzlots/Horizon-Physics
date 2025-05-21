@@ -2,7 +2,7 @@ package me.zombii.horizon.world.lighting;
 
 import com.badlogic.gdx.utils.Queue;
 import finalforeach.cosmicreach.blocks.BlockState;
-import finalforeach.cosmicreach.constants.Direction;
+import finalforeach.cosmicreach.util.constants.Direction;
 import me.zombii.horizon.world.BlockPos;
 import me.zombii.horizon.world.VirtualWorld;
 
