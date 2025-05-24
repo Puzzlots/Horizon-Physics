@@ -12,6 +12,7 @@ import com.jme3.bullet.objects.PhysicsBody;
 import com.jme3.bullet.objects.PhysicsRigidBody;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import finalforeach.cosmicreach.GameSingletons;
 import finalforeach.cosmicreach.Threads;
 import finalforeach.cosmicreach.TickRunner;
 import finalforeach.cosmicreach.blocks.Block;
@@ -158,20 +159,19 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
         EntityUtils.updateEntityChunk(zone, this);
         updatePosition();
 
-//        if (canBePickedUp() && isPickedUp()) {
-//            Player player = InGame.getLocalPlayer();
-//            Vector3 playerPos = player.getPosition().cpy().add(0, 2, 0);
-//            PerspectiveCamera cam = InGameAccess.getAccess().getRawWorldCamera();
-//            playerPos.add(cam.direction.cpy().scl(2f));
-//            Vector3f playerPosF = new Vector3f(playerPos.x, playerPos.y, playerPos.z);
-//
-//            Vector3f myPos = new Vector3f(position.x, position.y, position.z);
-//            Vector3f dir = new Vector3f(playerPosF);
-//            dir = dir.subtract(myPos).mult(3);
-//
-//            body.setLinearVelocity(dir);
-//            body.activate(true);
-//        }
+        if (canBePickedUp() && isPickedUp()) {
+            Vector3 playerPos = GameSingletons.world.players.get(0).getPosition().cpy().add(0, 2, 0);
+            Vector3 direction = GameSingletons.world.players.get(0).getEntity().viewDirection;
+            playerPos.add(direction.cpy().scl(2f));
+            Vector3f playerPosF = new Vector3f(playerPos.x, playerPos.y, playerPos.z);
+
+            Vector3f myPos = new Vector3f(position.x, position.y, position.z);
+            Vector3f dir = new Vector3f(playerPosF);
+            dir = dir.subtract(myPos).mult(3);
+
+            body.setLinearVelocity(dir);
+            body.activate(true);
+        }
 
         if (!((ExtendedBoundingBox)localBoundingBox).hasInnerBounds()) {
             ((ExtendedBoundingBox)localBoundingBox).setInnerBounds(oBoundingBox);

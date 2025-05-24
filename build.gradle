@@ -29,7 +29,7 @@ dependencies {
     bundle("com.github.mgsx-dev.gdx-gltf:gltf:2.2.1") {
         exclude group: "com.badlogicgames.gdx", module: "gdx"
     }
-    implementation("com.github.PuzzlesHQ:CosmicAPI:1.2.7-0.4.8")
+    implementation("com.github.PuzzlesHQ:CosmicAPI:$cosmic_api_version")
     cosmicReach("finalforeach:cosmicreach:$cosmic_reach_version:client")
 //    implementation(files("./lib/PuzzleLoader-69.69.69-bundle.jar"))
 }
