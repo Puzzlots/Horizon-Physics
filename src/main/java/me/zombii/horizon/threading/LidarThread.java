@@ -105,9 +105,8 @@ public class LidarThread implements TickingRunnable {
 
                 // Math.abs sorta makes it work
                 if (blockState != null) {
-                    for (AABB b : ((IBlockBoundsMaker) blockState.getModel()).getBounds(pos.getGlobalX(), Math.abs(pos.getGlobalY()), pos.getGlobalZ())) {
-                        System.out.println(b.getMax() + " " + b.getMin() + " " + vector3);
-                        if (b.intersects(vector3.x, Math.abs(vector3.y), vector3.z)) return true;
+                    for (AABB b : ((IBlockBoundsMaker) blockState.getModel()).getBounds(pos.getGlobalX(), pos.getGlobalY(), pos.getGlobalZ())) {
+                        if (b.intersects(vector3.x, vector3.y, vector3.z)) return true;
                     }
                 }
 
@@ -135,16 +134,16 @@ public class LidarThread implements TickingRunnable {
                     degrees += 1;
                     for (float i = 0; i < 110; i++) {
                         dir.rotate(1, 0, 1, 0);
-                        context.end(dir, 500);
+                        context.end(dir, 128);
 
                         Raycaster.RaycastHitResult hitResult = Raycaster.castRay(context, this::onHit);
                         try {
                             Vector3 hit = hitResult.getVector();
-                            if (onHit(hit)) {
+//                            if (onHit(hit)) {
                                 hit.sub(test.cpy().scl(dir));
 
                                 IShapeRenderer.points.add(hit);
-                            }
+//                            }
                         } catch (Exception e) {}
                     }
                 }
