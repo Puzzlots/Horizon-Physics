@@ -7,6 +7,7 @@ import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.entity.BasicPhysicsEntity;
 import me.zombii.horizon.entity.BasicShipEntity;
 import me.zombii.horizon.entity.Cube;
+import me.zombii.horizon.entity.Player;
 import me.zombii.horizon.entity.WorldCube;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -38,6 +39,7 @@ public class FixupMixin {
         EntityCreator.registerEntityCreator(HorizonConstants.MOD_ID + ":ship", BasicShipEntity::new);
 
         EntityCreator.registerEntityCreator(HorizonConstants.MOD_ID + ":cube", Cube::new);
+        EntityCreator.registerEntityCreator(HorizonConstants.MOD_ID + ":player", Player::new);
     }
 
 }
