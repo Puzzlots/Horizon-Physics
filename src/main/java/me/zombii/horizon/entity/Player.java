@@ -149,7 +149,7 @@ public class Player extends Entity implements IPhysicEntity, ISingleEntityBlock 
                 PhysicsThread.addEntity(this);
                 body.activate(true);
             } else {
-                body.setPhysicsLocation(ConversionUtil.toJME(localPlayer.getPosition()).add(0, rBoundingBox.getHeight()/2, 0));
+                body.setPhysicsLocation(ConversionUtil.toJME(localPlayer.getPosition()).subtract(0, rBoundingBox.getCenterY(), 0));
                 body.setPhysicsRotation(rotation = Quaternion.IDENTITY);
                 position = ConversionUtil.fromJME(body.getPhysicsLocation(null));
                 rotation = body.getPhysicsRotation(null);
