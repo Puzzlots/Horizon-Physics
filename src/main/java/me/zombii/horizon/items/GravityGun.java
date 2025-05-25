@@ -7,6 +7,10 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.github.puzzle.game.resources.PuzzleGameAssetLoader;
 import com.jme3.bullet.collision.PhysicsRayTestResult;
+import com.jme3.bullet.objects.PhysicsRigidBody;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
+import finalforeach.cosmicreach.GameSingletons;
 import finalforeach.cosmicreach.Threads;
 import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.entities.player.Player;
@@ -42,6 +46,20 @@ public class GravityGun extends AbstractCosmicItem implements I3DItem {
 
     static Vector3 intersectionPoint = new Vector3();
     static Ray ray = new Ray();
+
+    public static void move(PhysicsRigidBody body, Vector3 position) {
+        Vector3 playerPos = GameSingletons.world.players.get(0).getPosition().cpy().add(0, 2, 0);
+        Vector3 direction = GameSingletons.world.players.get(0).getEntity().viewDirection;
+        playerPos.add(direction.cpy().scl(2f));
+        Vector3f playerPosF = new Vector3f(playerPos.x, playerPos.y, playerPos.z);
+
+        Vector3f myPos = new Vector3f(position.x, position.y, position.z);
+        Vector3f dir = new Vector3f(playerPosF);
+        dir = dir.subtract(myPos).mult(3);
+
+        body.setLinearVelocity(dir);
+        body.activate(true);
+    }
 
     @Override
     public boolean pUse(APISide side, IItemSlot itemSlot, IPlayer player, IBlockPosition targetPlaceBlockPos, IBlockPosition targetBreakBlockPos, boolean isLeftClick) {

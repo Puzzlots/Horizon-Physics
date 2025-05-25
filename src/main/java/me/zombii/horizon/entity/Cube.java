@@ -160,17 +160,7 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
         updatePosition();
 
         if (canBePickedUp() && isPickedUp()) {
-            Vector3 playerPos = GameSingletons.world.players.get(0).getPosition().cpy().add(0, 2, 0);
-            Vector3 direction = GameSingletons.world.players.get(0).getEntity().viewDirection;
-            playerPos.add(direction.cpy().scl(2f));
-            Vector3f playerPosF = new Vector3f(playerPos.x, playerPos.y, playerPos.z);
-
-            Vector3f myPos = new Vector3f(position.x, position.y, position.z);
-            Vector3f dir = new Vector3f(playerPosF);
-            dir = dir.subtract(myPos).mult(3);
-
-            body.setLinearVelocity(dir);
-            body.activate(true);
+            GravityGun.move(body,position);
         }
 
         if (!((ExtendedBoundingBox)localBoundingBox).hasInnerBounds()) {
