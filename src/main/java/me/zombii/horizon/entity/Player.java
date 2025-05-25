@@ -12,6 +12,7 @@ import com.jme3.bullet.objects.PhysicsBody;
 import com.jme3.bullet.objects.PhysicsRigidBody;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import finalforeach.cosmicreach.GameSingletons;
 import finalforeach.cosmicreach.Threads;
 import finalforeach.cosmicreach.TickRunner;
 import finalforeach.cosmicreach.blocks.Block;
@@ -28,17 +29,20 @@ import me.zombii.horizon.entity.api.IPhysicEntity;
 import me.zombii.horizon.entity.api.ISingleEntityBlock;
 import me.zombii.horizon.items.GravityGun;
 import me.zombii.horizon.rendering.mesh.IHorizonMesh;
+import me.zombii.horizon.rendering.mesh.IMeshInstancer;
 import me.zombii.horizon.threading.PhysicsThread;
 import me.zombii.horizon.util.ConversionUtil;
-import me.zombii.horizon.rendering.mesh.IMeshInstancer;
 import me.zombii.horizon.util.MatrixUtil;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.common.aliasing.qual.Unique;
 
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
+import static finalforeach.cosmicreach.GameSingletons.clientSingletons;
+
+public class Player extends Entity implements IPhysicEntity, ISingleEntityBlock {
 
     private Quaternion lastRotation;
     public PhysicsRigidBody body;
@@ -50,26 +54,22 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
     public AtomicReference<BlockState> state = new AtomicReference<>();
     boolean isPickedUp;
 
-    public BoundingBox rBoundingBox = new BoundingBox(new Vector3(-0.5f, -0.5f,-0.5f), new Vector3(0.5f, 0.5f, 0.5f));
+    public BoundingBox rBoundingBox = new BoundingBox(new Vector3(-0.25f, 0f,-0.25f), new Vector3(0.25f, 1.9f, 0.25f));
     public OrientedBoundingBox oBoundingBox = new OrientedBoundingBox();
 
-    BlockState[] states = Block.allBlockStates.values().toArray(new BlockState[0]);
+    finalforeach.cosmicreach.entities.player.Player localPlayer = clientSingletons.getLocalPlayer();
 
-    public Cube() {
-        super(HorizonConstants.MOD_ID + ":cube");
+    public Player() {
+        super(HorizonConstants.MOD_ID + ":player");
 
         if (!IClientNetworkManager.isConnected()){
-//            state.set(BlockState.getInstance("base:furnace[lit=off]"));
-            state.set(states[new Random().nextInt(0, states.length)]);
-            shape = PhysicsThread.INSTANCE.shapeFromBlockState(new CompoundCollisionShape(), new Vector3f(), state.get());
-            rBoundingBox = ConversionUtil.toBoundingBox(shape);
-
+            shape = ConversionUtil.toCollisionShape(rBoundingBox);
             body = new PhysicsRigidBody(shape);
             body.setFriction(1f);
-            mass = 2.5f;
+            mass = 0f;
         }
 
-        uuid = UUID.randomUUID();
+        uuid = UUID.nameUUIDFromBytes(localPlayer.getUsername().substring(5).getBytes());
         rotation = Quaternion.DIRECTION_Z;
         lastRotation = new Quaternion();
         transform = new Matrix4();
@@ -110,17 +110,17 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
     public void hit(IDamageSource damageSource, float amount) {
     }
 
-    @Override
-    public void onAttackInteraction(Entity sourceEntity) {
-        super.onAttackInteraction(sourceEntity);
-        setPickedUp(false);
-        if (equals(GravityGun.heldEntity)) {
-            GravityGun.heldEntity = null;
-        }
-
-        body.activate(true);
-        body.setLinearVelocity(new Vector3f(sourceEntity.viewDirection.cpy().scl(12).x, sourceEntity.viewDirection.cpy().scl(12).y, sourceEntity.viewDirection.cpy().scl(12).z));
-    }
+//    @Override
+//    public void onAttackInteraction(Entity sourceEntity) {
+//        super.onAttackInteraction(sourceEntity);
+//        setPickedUp(false);
+//        if (equals(GravityGun.heldEntity)) {
+//            GravityGun.heldEntity = null;
+//        }
+//
+//        body.activate(true);
+//        body.setLinearVelocity(new Vector3f(sourceEntity.viewDirection.cpy().scl(12).x, sourceEntity.viewDirection.cpy().scl(12).y, sourceEntity.viewDirection.cpy().scl(12).z));
+//    }
 
     @Override
     public void getBoundingBox(BoundingBox boundingBox) {
@@ -142,26 +142,23 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
 
             if (!initialized) {
                 PhysicsThread.alertChunk(zone.getChunkAtPosition(position));
-                body.setPhysicsLocation(new Vector3f(position.x, position.y, position.z));
-                body.setPhysicsRotation(rotation);
+                body.setPhysicsLocation(ConversionUtil.toJME(localPlayer.getPosition()));body.setPhysicsRotation(rotation);
                 body.setMass(mass);
                 initialized = true;
 
                 PhysicsThread.addEntity(this);
                 body.activate(true);
             } else {
-                Vector3f vector3f = body.getPhysicsLocation(null);
-                position = ConversionUtil.fromJME(vector3f);
+                body.setPhysicsLocation(ConversionUtil.toJME(localPlayer.getPosition()).subtract(0, rBoundingBox.getCenterY(), 0));
+                body.setPhysicsRotation(rotation = Quaternion.IDENTITY);
+                position = ConversionUtil.fromJME(body.getPhysicsLocation(null));
                 rotation = body.getPhysicsRotation(null);
-//            body.setPhysicsRotation(rotation = Quaternion.DIRECTION_Z);
+                rBoundingBox = ConversionUtil.toBoundingBox(body.getCollisionShape());
             }
         }
         EntityUtils.updateEntityChunk(zone, this);
         updatePosition();
 
-        if (canBePickedUp() && isPickedUp()) {
-            GravityGun.move(body,position);
-        }
 
         if (!((ExtendedBoundingBox)localBoundingBox).hasInnerBounds()) {
             ((ExtendedBoundingBox)localBoundingBox).setInnerBounds(oBoundingBox);
@@ -185,9 +182,6 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
         if (worldCamera.frustum.boundsInFrustum(this.globalBoundingBox)) {
             tmpModelMatrix.idt();
             MatrixUtil.rotateAroundOrigin4(.5f, tmpModelMatrix, tmpRenderPos, rotation);
-            if (modelInstance != null) {
-                modelInstance.render(this, worldCamera, tmpModelMatrix, true);
-            }
         }
     }
 
@@ -204,8 +198,6 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
         if (!IClientNetworkManager.isConnected()){
             body.setPhysicsLocation(new Vector3f(position.x, position.y, position.z));
             body.setPhysicsRotation(rotation);
-            body.setCollisionShape(PhysicsThread.INSTANCE.shapeFromBlockState(new CompoundCollisionShape(), new Vector3f(), state.get()));
-            rBoundingBox = ConversionUtil.toBoundingBox(shape);
         }
         getBoundingBox(globalBoundingBox);
     }
@@ -215,7 +207,6 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
         super.write(serial);
 
         IPhysicEntity.write(this, serial);
-        ISingleEntityBlock.write(this, serial);
     }
 
     @Override
