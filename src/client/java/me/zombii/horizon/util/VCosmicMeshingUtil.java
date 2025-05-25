@@ -19,9 +19,9 @@ import me.zombii.horizon.world.PhysicsZone;
 
 import java.util.Arrays;
 
-import static me.zombii.horizon.util.CosmicMeshingUtil.emptyMeshDatas;
-
 public class VCosmicMeshingUtil {
+
+    static final Array<MeshData> emptyMeshDatas = new Array(false, 0, MeshData.class);
 
     public static Array<MeshData> getMeshData(PhysicsZone zone, Chunk chunk) {
         IBlockData<BlockState> blockData = (IBlockData<BlockState>) chunk.getBlockData();

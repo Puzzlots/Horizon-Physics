@@ -8,4 +8,7 @@ public interface IBlockBoundsMaker {
     AABB[] getBounds();
     AABB[] getBounds(int bx, int by, int bz);
 
+    BoundingBox[] getBoundsGdx();
+    BoundingBox[] getBoundsGdx(int bx, int by, int bz);
+
 }

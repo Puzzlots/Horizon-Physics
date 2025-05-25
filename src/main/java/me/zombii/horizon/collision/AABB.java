@@ -155,4 +155,11 @@ public class AABB implements Bounds {
     }
 
 
+    public void setMax(Vector3 vec) {
+        this.max.set(vec.x, vec.y, vec.z);
+    }
+
+    public void setMin(Vector3 vec) {
+        this.min.set(vec.x, vec.y, vec.z);
+    }
 }

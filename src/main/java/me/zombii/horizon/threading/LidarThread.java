@@ -22,13 +22,11 @@ import io.github.puzzle.cosmic.util.APISide;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import me.zombii.horizon.collision.AABB;
 import me.zombii.horizon.entity.api.IPhysicEntity;
-import me.zombii.horizon.entity.api.IVirtualWorldEntity;
 import me.zombii.horizon.entity.api.IVirtualZoneEntity;
 import me.zombii.horizon.rendering.IShapeRenderer;
 import me.zombii.horizon.rendering.mesh.IBlockBoundsMaker;
 import me.zombii.horizon.util.ConversionUtil;
 import me.zombii.horizon.world.PhysicsZone;
-import me.zombii.horizon.world.VirtualWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,17 +66,6 @@ public class LidarThread implements TickingRunnable {
                                 matrix4f.set(ConversionUtil.fromJME(((IPhysicEntity) entity).getEularRotation()));
                                 Vector3 v = vector3.cpy().sub(entity.position).unrotate(matrix4f);
 
-                                if (entity instanceof IVirtualWorldEntity vw) {
-                                    VirtualWorld zone1 = vw.getWorld();
-
-                                    BlockState blockState = zone1.getBlockstateAt(v);
-                                    if (Block.AIR.getDefaultBlockState() != blockState && Block.WATER.getDefaultBlockState() != blockState) {
-                                        for (AABB b : ((IBlockBoundsMaker) blockState.getModel()).getBounds((int) v.x, (int) v.y, (int) v.z)) {
-                                            if (b.intersects(vector3)) return true;
-                                        }
-                                    }
-                                    if (Block.AIR.getDefaultBlockState() != blockState && Block.WATER.getDefaultBlockState() != blockState) return true;
-                                }
                                 if (entity instanceof IVirtualZoneEntity vz) {
                                     PhysicsZone zone1 = vz.getWorld();
 
@@ -103,7 +90,6 @@ public class LidarThread implements TickingRunnable {
                 if (pos.chunk == null) return false;
                 BlockState blockState = pos.getBlockState();
 
-                // Math.abs sorta makes it work
                 if (blockState != null) {
                     for (AABB b : ((IBlockBoundsMaker) blockState.getModel()).getBounds(pos.getGlobalX(), pos.getGlobalY(), pos.getGlobalZ())) {
                         if (b.intersects(vector3.x, vector3.y, vector3.z)) return true;

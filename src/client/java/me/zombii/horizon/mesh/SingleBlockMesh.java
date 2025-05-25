@@ -85,8 +85,6 @@ public class SingleBlockMesh implements IEntityModelInstance, IHorizonMesh {
         if (needsRemeshing) {
             MeshData data = new MeshData(shader, RenderOrder.DEFAULT);
             state.get().addVertices(data, 0, 0, 0);
-            System.out.println(state.get());
-            System.out.println(Arrays.toString(data.vertices.items));
 
 //            if (BlockModelJson.useIndices) {
 //                mesh = data.toIntIndexedMesh(true);

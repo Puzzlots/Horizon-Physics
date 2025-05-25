@@ -45,4 +45,36 @@ public class DummyBlockModelJsonMixin implements IBlockBoundsMaker {
         return boundingBoxes;
     }
 
+    @Override
+    public BoundingBox[] getBoundsGdx() {
+        if (this.boundingBoxes == null) return new BoundingBox[0];
+        BoundingBox[] boundingBoxes = new BoundingBox[this.boundingBoxes.items.length];
+
+        for (int i = 0; i < this.boundingBoxes.items.length; i++) {
+            BoundingBox bb = new BoundingBox();
+
+            bb.min.set(this.boundingBoxes.items[i].min.x, this.boundingBoxes.items[i].min.y, this.boundingBoxes.items[i].min.z);
+            bb.max.set(this.boundingBoxes.items[i].max.x, this.boundingBoxes.items[i].max.y, this.boundingBoxes.items[i].max.z);
+            bb.update();
+            boundingBoxes[i] = bb;
+        }
+        return boundingBoxes;
+    }
+
+    @Override
+    public BoundingBox[] getBoundsGdx(int bx, int by, int bz) {
+        if (this.boundingBoxes == null) return new BoundingBox[0];
+        BoundingBox[] boundingBoxes = new BoundingBox[this.boundingBoxes.items.length];
+
+        for (int i = 0; i < this.boundingBoxes.items.length; i++) {
+            BoundingBox bb = new BoundingBox();
+
+            bb.min.set(this.boundingBoxes.items[i].min.x + bx, this.boundingBoxes.items[i].min.y + by, this.boundingBoxes.items[i].min.z + bz);
+            bb.max.set(this.boundingBoxes.items[i].max.x + bx, this.boundingBoxes.items[i].max.y + by, this.boundingBoxes.items[i].max.z + bz);
+            bb.update();
+            boundingBoxes[i] = bb;
+        }
+        return boundingBoxes;
+    }
+
 }

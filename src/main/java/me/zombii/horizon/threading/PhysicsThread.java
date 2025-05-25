@@ -22,8 +22,6 @@ import me.zombii.horizon.entity.api.IPhysicEntity;
 import me.zombii.horizon.rendering.mesh.IBlockBoundsMaker;
 import me.zombii.horizon.util.NativeLibraryLoader;
 import me.zombii.horizon.world.PhysicsZone;
-import me.zombii.horizon.world.VirtualChunk;
-import me.zombii.horizon.world.VirtualWorld;
 import me.zombii.horizon.world.physics.ChunkMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,38 +158,6 @@ public class PhysicsThread implements TickingRunnable {
         queuedRunnables.addLast(runnable);
     }
 
-    public static void post(VirtualWorld world) {
-        queuedRunnables.addLast(() -> {
-            synchronized (world) {
-                boolean isNew = false;
-                CompoundCollisionShape collisionShape = new CompoundCollisionShape();
-//                if (collisionShape == null) {
-//                    isNew = true;
-//                    collisionShape = new CompoundCollisionShape();
-//                }
-//
-//                if (!isNew) {
-//                    for (ChildCollisionShape shape : collisionShape.listChildren()) {
-//                        System.out.println("pebus");
-//                        collisionShape.removeChildShape(shape.getShape());
-//                    }
-//                }
-
-
-
-                try {
-                    for (VirtualChunk chunk : world.structureMap.values()) {
-                        INSTANCE.createPhysicsMesh(collisionShape, chunk);
-                    }
-                } catch (Exception ignore) {}
-
-                world.CCS = collisionShape;
-                world.CCS_WAS_REBUILT = true;
-                System.gc();
-            }
-        });
-    }
-
     public static void invalidateChunk(Chunk chunk) {
         if (chunk == null || !chunkMap.containsKey(chunk)) return;
 
@@ -293,24 +259,6 @@ public class PhysicsThread implements TickingRunnable {
     }
 
     // Collision Mesh Util
-    public CompoundCollisionShape createPhysicsMesh(CompoundCollisionShape mesh, VirtualChunk chunk) {
-        for (int x = 0; x < 16; x++) {
-            for (int y = 0; y < 16; y++) {
-                for (int z = 0; z < 16; z++) {
-                    int globalX = (chunk.chunkPos.x() * 16) + x;
-                    int globalY = (chunk.chunkPos.y() * 16) + y;
-                    int globalZ = (chunk.chunkPos.z() * 16) + z;
-
-                    BlockState state = chunk.getBlockState(x, y, z);
-                    if (!isCollideableState(state)) { continue; }
-                    shapeFromBlockState(mesh, new Vector3f(globalX, globalY, globalZ).add(0.5f, 0.5f, 0.5f), state);
-                }
-            }
-        }
-
-        return mesh;
-    }
-
     public CompoundCollisionShape createPhysicsMesh2(CompoundCollisionShape mesh, Chunk chunk) {
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {
@@ -341,10 +289,6 @@ public class PhysicsThread implements TickingRunnable {
         }
 
         return mesh;
-    }
-
-    public CompoundCollisionShape createPhysicsMesh(VirtualChunk chunk) {
-        return createPhysicsMesh(new CompoundCollisionShape(), chunk);
     }
 
     public CompoundCollisionShape createPhysicsMesh(Chunk chunk) {

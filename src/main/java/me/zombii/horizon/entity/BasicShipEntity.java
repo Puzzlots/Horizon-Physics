@@ -12,7 +12,7 @@ import finalforeach.cosmicreach.entities.EntityUtils;
 import finalforeach.cosmicreach.entities.IDamageSource;
 import finalforeach.cosmicreach.entities.components.GravityComponent;
 import me.zombii.horizon.entity.api.IPhysicEntity;
-import me.zombii.horizon.entity.api.IVirtualWorldEntity;
+import me.zombii.horizon.entity.api.IVirtualZoneEntity;
 import me.zombii.horizon.rendering.mesh.IMeshInstancer;
 import me.zombii.horizon.util.Vec3i;
 import com.jme3.bullet.objects.PhysicsBody;
@@ -26,78 +26,80 @@ import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.savelib.crbin.CRBinDeserializer;
 import finalforeach.cosmicreach.savelib.crbin.CRBinSerializer;
 import finalforeach.cosmicreach.world.Zone;
+import me.zombii.horizon.world.PhysicsChunk;
+import me.zombii.horizon.world.PhysicsZone;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import me.zombii.horizon.threading.PhysicsThread;
 import me.zombii.horizon.util.MatrixUtil;
-import me.zombii.horizon.world.VirtualChunk;
-import me.zombii.horizon.world.VirtualWorld;
 
 import java.util.UUID;
 
-public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualWorldEntity {
+public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualZoneEntity {
 
+    private final Quaternion lastEularRotation;
     public PhysicsRigidBody body;
 
     public Quaternion rotation;
     UUID uuid;
-    float mass = 5;
-
-    public VirtualWorld world;
+    float mass = 0;
 
     public Matrix4 transform = new Matrix4();
-    private Quaternion lastEularPosition;
+    public PhysicsZone world;
 
     public BasicShipEntity() {
         super(HorizonConstants.MOD_ID + ":ship");
+        removeUpdatingComponent(GravityComponent.INSTANCE);
+
+        if (uuid == null)
+            uuid = UUID.randomUUID();
+
+        world = PhysicsZone.create(uuid);
 
         if (!IClientNetworkManager.isConnected()) {
-            if (rotation == null) rotation = new Quaternion(0, 0, 0, 0);
-            if (uuid == null) uuid = UUID.randomUUID();
-            removeUpdatingComponent(GravityComponent.INSTANCE);
-        }
+            if (rotation == null) rotation = Quaternion.DIRECTION_Z;
+            world = PhysicsZone.create(uuid);
 
-        world = new VirtualWorld();
-        VirtualChunk structure00 = new VirtualChunk((short) 0, new Vec3i(0, 0, 0));
-        VirtualChunk structure01 = new VirtualChunk((short) 0, new Vec3i(-1, 0, 0));
-        VirtualChunk structure10 = new VirtualChunk((short) 0, new Vec3i(0, 0, -1));
-        VirtualChunk structure11 = new VirtualChunk((short) 0, new Vec3i(-1, 0, -1));
+            PhysicsChunk structure00 = new PhysicsChunk(new Vec3i(0, 0, 0));
+            PhysicsChunk structure01 = new PhysicsChunk(new Vec3i(-1, 0, 0));
+            PhysicsChunk structure10 = new PhysicsChunk(new Vec3i(0, 0, -1));
+            PhysicsChunk structure11 = new PhysicsChunk(new Vec3i(-1, 0, -1));
 
-        BlockState stone = BlockState.getInstance("base:stone_basalt[default]", MissingBlockStateResult.MISSING_OBJECT);
-        BlockState chair = BlockState.getInstance(HorizonConstants.MOD_ID + ":chair[default]", MissingBlockStateResult.MISSING_OBJECT);
-        for (int x = 0; x < 8; x++) {
-            for (int z = 0; z < 8; z++) {
-                structure00.setBlockState(stone, x, 0, z);
-                structure01.setBlockState(stone, x + 8, 0, z);
-                structure10.setBlockState(stone, x, 0, z + 8);
-                structure11.setBlockState(stone, x + 8, 0, z + 8);
+            BlockState stone = BlockState.getInstance("base:stone_basalt[default]", MissingBlockStateResult.MISSING_OBJECT);
+            BlockState light = BlockState.getInstance("base:torch[type=ground,level=4]", MissingBlockStateResult.MISSING_OBJECT);
+            for (int x = 0; x < 8; x++) {
+                for (int z = 0; z < 8; z++) {
+                    structure00.setBlockState(stone, x, 0, z);
+                    structure01.setBlockState(stone, x + 8, 0, z);
+                    structure10.setBlockState(stone, x, 0, z + 8);
+                    structure11.setBlockState(stone, x + 8, 0, z + 8);
+                }
             }
-        }
+            BlockState chair = BlockState.getInstance(HorizonConstants.MOD_ID + ":chair[default]", MissingBlockStateResult.MISSING_OBJECT);
+            structure00.setBlockState(light, 0, 1, 0);
+            structure01.setBlockState(light, 15, 1, 0);
+            structure10.setBlockState(light, 0, 1, 15);
+            structure11.setBlockState(light, 15, 1, 15);
+            world.addChunk(structure00);
+            world.addChunk(structure01);
+            world.addChunk(structure10);
+            world.addChunk(structure11);
+            world.rebuildCollisionShape();
 
-        structure00.setBlockState(chair, 0, 1, 0);
-        structure01.setBlockState(chair, 15, 1, 0);
-        structure10.setBlockState(chair, 0, 1, 15);
-        structure11.setBlockState(chair, 15, 1, 15);
-        world.putChunkAt(structure00);
-        world.putChunkAt(structure01);
-        world.putChunkAt(structure10);
-        world.putChunkAt(structure11);
-        world.rebuildCollisionShape();
-
-        if (!IClientNetworkManager.isConnected()) {
             body = new PhysicsRigidBody(world.CCS);
         }
 
-        Threads.runOnMainThread(() -> modelInstance = IMeshInstancer.createMultiBlockMesh(world));
+        modelInstance = null;
+        if (!IClientNetworkManager.isConnected()) {
+            Threads.runOnMainThread(() -> modelInstance = IMeshInstancer.createZoneMesh(world));
+        }
 
         transform.idt();
-        lastEularPosition = new Quaternion();
+        lastEularRotation = Quaternion.DIRECTION_Z;
     }
 
     public OrientedBoundingBox oBoundingBox = new OrientedBoundingBox();
-
-    boolean hasInit = false;
 
     @Override
     protected void onDeath() {
@@ -106,45 +108,58 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualWo
     }
 
     @Override
-    public void hit(IDamageSource damageSource, float amount) {
+    public void onAttackInteraction(Entity sourceEntity) {
+        body.activate(true);
+        body.setLinearVelocity(new Vector3f(sourceEntity.viewDirection.cpy().scl(12).x, sourceEntity.viewDirection.cpy().scl(12).y, sourceEntity.viewDirection.cpy().scl(12).z));
     }
+
+    boolean initialized = false;
 
     @Override
     public void update(Zone zone, float deltaTime) {
         PhysicsThread.alertChunk(zone.getChunkAtPosition(position));
+
         MatrixUtil.rotateAroundOrigin3(oBoundingBox, transform, position, rotation);
 
         oBoundingBox.setBounds(world.AABB);
         oBoundingBox.setTransform(transform);
 
-        if (!hasInit) {
-            body.setPhysicsLocation(new Vector3f(position.x, position.y, position.z));
-            body.setMass(0);
+        if (!initialized) {
             PhysicsThread.alertChunk(zone.getChunkAtPosition(position));
-            hasInit = true;
-
+            body.setPhysicsRotation(getEularRotation());
+            body.setPhysicsLocation(new Vector3f(position.x, position.y, position.z));
+            body.setMass(5);
+            initialized = true;
 
             PhysicsThread.addEntity(this);
             body.activate(true);
         } else {
             Vector3f vector3f = body.getPhysicsLocation(new Vector3f());
-            vector3f = vector3f.subtract(0.5f, 0.5f, 0.5f);
             position.set(vector3f.x, vector3f.y, vector3f.z);
             rotation = body.getPhysicsRotation(new Quaternion());
         }
+
+        if (world.CCS_WAS_REBUILT) {
+            System.out.println("rebuilding");
+            PhysicsThread.INSTANCE.space.getRigidBodyList().forEach(e -> {
+                if (e.nativeId() == body.nativeId()) {
+                    System.out.println("E");
+                    e.setCollisionShape(world.CCS);
+                }
+            });
+            body.setCollisionShape(world.CCS);
+            world.CCS_WAS_REBUILT = false;
+            System.out.println("rebuilt");
+        }
+        body.setPhysicsRotation(getEularRotation());
+        EntityUtils.updateEntityChunk(zone, this);
+        updatePosition();
 
         if (!((ExtendedBoundingBox)localBoundingBox).hasInnerBounds()) {
             ((ExtendedBoundingBox)localBoundingBox).setInnerBounds(oBoundingBox);
         }
 
-        if (world.CCS_WAS_REBUILT) {
-            body.setCollisionShape(world.CCS);
-            world.CCS_WAS_REBUILT = false;
-        }
-
         getBoundingBox(globalBoundingBox);
-        EntityUtils.updateEntityChunk(zone, this);
-        updatePosition();
     }
 
     @Override
@@ -157,40 +172,30 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualWo
     public void read(CRBinDeserializer deserial) {
         super.read(deserial);
 
-        uuid = IPhysicEntity.readOrDefault(() -> {
-            String uid = deserial.readString("uuid");
-            return UUID.fromString(uid);
-        }, UUID.randomUUID());
+        IPhysicEntity.read(this, deserial);
+        IVirtualZoneEntity.read(this, deserial);
+        world.recalculateBounds();
+        getBoundingBox(localBoundingBox);
 
-        rotation = IPhysicEntity.readOrDefault(() -> {
-            float rot_x = deserial.readFloat("rot_x", 0);
-            float rot_y = deserial.readFloat("rot_y", 0);
-            float rot_z = deserial.readFloat("rot_z", 0);
-            float rot_w = deserial.readFloat("rot_w", 0);
-
-            return new Quaternion(rot_x, rot_y, rot_z, rot_w);
-        }, new Quaternion(0, 0, 0, 0));
-
-        if (PhysicsThread.INSTANCE != null && !IClientNetworkManager.isConnected()) {
+        if (!IClientNetworkManager.isConnected()) {
             body.setPhysicsLocation(new Vector3f(position.x, position.y, position.z));
             body.setPhysicsRotation(rotation);
         }
+
+        Threads.runOnMainThread(() -> modelInstance = IMeshInstancer.createZoneMesh(world));
     }
 
     @Override
     public void write(CRBinSerializer serial) {
         super.write(serial);
 
-        serial.writeString("uuid", uuid == null ? UUID.randomUUID().toString() : uuid.toString());
-
-        serial.writeFloat("rot_x", rotation.getX());
-        serial.writeFloat("rot_y", rotation.getY());
-        serial.writeFloat("rot_z", rotation.getZ());
-        serial.writeFloat("rot_w", rotation.getW());
+        IPhysicEntity.write(this, serial);
+        IVirtualZoneEntity.write(this, serial);
     }
 
     @Override
     public void render(Camera worldCamera) {
+        if (modelInstance == null) return;
         MatrixUtil.rotateAroundOrigin3(oBoundingBox, transform, position, rotation);
 
         oBoundingBox.setBounds(world.AABB);
@@ -221,12 +226,12 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualWo
 
     @Override
     public Quaternion getLastEularRotation() {
-        return lastEularPosition;
+        return lastEularRotation;
     }
 
     @Override
     public void setLastEularRotation(Quaternion rot) {
-        lastEularPosition.set(rot);
+        lastEularRotation.set(rot);
     }
 
     @Override
@@ -281,7 +286,8 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualWo
     }
 
     @Override
-    public VirtualWorld getWorld() {
+    public PhysicsZone getWorld() {
         return world;
     }
+
 }

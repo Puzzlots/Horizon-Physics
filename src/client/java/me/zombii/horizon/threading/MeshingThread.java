@@ -11,11 +11,8 @@ import finalforeach.cosmicreach.rendering.meshes.MeshData;
 import finalforeach.cosmicreach.rendering.shaders.GameShader;
 import finalforeach.cosmicreach.world.Chunk;
 import me.zombii.horizon.rendering.mesh.IPhysicChunk;
-import me.zombii.horizon.util.CosmicMeshingUtil;
 import me.zombii.horizon.util.VCosmicMeshingUtil;
 import me.zombii.horizon.world.PhysicsZone;
-import me.zombii.horizon.world.VirtualChunk;
-import me.zombii.horizon.world.VirtualWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,38 +85,6 @@ public class MeshingThread implements Runnable {
     }
 
     public static boolean started = false;
-
-    public static AtomicReference<VirtualChunkMeshMeta> post(VirtualChunk chunk) {
-        return post(new AtomicReference<>(), chunk);
-    }
-
-    public static AtomicReference<VirtualChunkMeshMeta> post(AtomicReference<VirtualChunkMeshMeta> ref, VirtualChunk chunk) {
-        if (chunk.parent == null)
-            throw new RuntimeException(VirtualChunk.class.getSimpleName() + " must have a parent " + VirtualWorld.class.getSimpleName());
-        if (chunk.isEntirely(Block.AIR.getDefaultBlockState()))
-            return ref;
-
-        queuedRunnables.addLast(() -> {
-            synchronized (ref) {
-                Threads.runOnMainThread(() -> {
-                    Array<MeshData> array = CosmicMeshingUtil.getMeshData(chunk.parent, chunk.chunkPos, chunk);
-
-                    VirtualChunkMeshMeta data = ref.get() != null ? ref.get() : new VirtualChunkMeshMeta();
-
-                    if (array != null && !array.isEmpty()) {
-                        VirtualChunkMeshMeta meshData = MeshingThread.INSTANCE.buildChunkMeshMeta(data, array);
-                        ref.set(meshData);
-                    }
-                    chunk.needsRemeshing = false;
-                });
-            }
-        });
-
-        if (!started) start();
-        else parent.onResume();
-
-        return ref;
-    }
 
     private VirtualChunkMeshMeta buildChunkMeshMeta(VirtualChunkMeshMeta meta, Array<MeshData> data) {
         for (int i = 0; i < data.size; i++) {

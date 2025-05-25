@@ -24,14 +24,12 @@ import io.github.puzzle.cosmic.util.APISide;
 import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import me.zombii.horizon.entity.api.IPhysicEntity;
-import me.zombii.horizon.entity.api.IVirtualWorldEntity;
 import me.zombii.horizon.entity.api.IVirtualZoneEntity;
 import me.zombii.horizon.rendering.IShapeRenderer;
 import me.zombii.horizon.rendering.mesh.IBlockBoundsMaker;
 import me.zombii.horizon.threading.LidarThread;
 import me.zombii.horizon.util.ConversionUtil;
 import me.zombii.horizon.world.PhysicsZone;
-import me.zombii.horizon.world.VirtualWorld;
 
 public class LidarGun extends AbstractCosmicItem {
 

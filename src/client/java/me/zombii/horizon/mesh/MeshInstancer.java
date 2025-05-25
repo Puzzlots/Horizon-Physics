@@ -7,16 +7,10 @@ import finalforeach.cosmicreach.rendering.entities.IEntityModelInstance;
 import finalforeach.cosmicreach.rendering.meshes.MeshData;
 import me.zombii.horizon.rendering.mesh.IMeshInstancer;
 import me.zombii.horizon.world.PhysicsZone;
-import me.zombii.horizon.world.VirtualWorld;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 public class MeshInstancer implements IMeshInstancer {
-
-    @Override
-    public IEntityModelInstance multiBlockMesh(VirtualWorld world) {
-        return new MutliBlockMesh(world);
-    }
 
     @Override
     public IEntityModelInstance singleBlockMesh(AtomicReference<BlockState> state) {
