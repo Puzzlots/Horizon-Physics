@@ -21,34 +21,31 @@ public class MixinEntityUtils {
     @Overwrite
     public static <T extends BoundingBox & ExtendedBoundingBox> void nudgeEntityFromOthers(Entity sourceEntity) {
         sourceEntity.forEachEntityInNearbyChunks((e) -> {
-            if (e != sourceEntity) {
-                if (e.hasTag(CommonEntityTags.NO_ENTITY_PUSH)) {
-                    return;
-                }
+            if (e == sourceEntity) return;
+            if (e.hasTag(CommonEntityTags.NO_ENTITY_PUSH)) return;
 
-                T boundBoxA = (T) sourceEntity.globalBoundingBox;
-                T boundBoxB = (T) e.globalBoundingBox;
+            T boundBoxA = (T) sourceEntity.globalBoundingBox;
+            T boundBoxB = (T) e.globalBoundingBox;
 
-                boolean intersects = false;
-                if (boundBoxA.hasInnerBounds() && boundBoxB.hasInnerBounds()) intersects = boundBoxA.getInnerBounds().intersects(boundBoxB.getInnerBounds());
-                if (boundBoxA.hasInnerBounds() && !boundBoxB.hasInnerBounds()) intersects = boundBoxA.getInnerBounds().intersects(boundBoxB);
-                if (!boundBoxA.hasInnerBounds() && boundBoxB.hasInnerBounds()) intersects = boundBoxB.getInnerBounds().intersects(boundBoxA);
-                if (!boundBoxA.hasInnerBounds() && !boundBoxB.hasInnerBounds()) intersects = boundBoxB.intersects(boundBoxA);
+            boolean intersects = false;
+            if (boundBoxA.hasInnerBounds() && boundBoxB.hasInnerBounds()) intersects = boundBoxA.getInnerBounds().intersects(boundBoxB.getInnerBounds());
+            if (boundBoxA.hasInnerBounds() && !boundBoxB.hasInnerBounds()) intersects = boundBoxA.getInnerBounds().intersects(boundBoxB);
+            if (!boundBoxA.hasInnerBounds() && boundBoxB.hasInnerBounds()) intersects = boundBoxB.getInnerBounds().intersects(boundBoxA);
+            if (!boundBoxA.hasInnerBounds() && !boundBoxB.hasInnerBounds()) intersects = boundBoxB.intersects(boundBoxA);
 
-                if (intersects) {
-                    Vector3 position = sourceEntity.position;
-                    float dst = position.dst(e.position);
-                    if (dst == 0.0F) {
-                        position.add(MathUtils.random(0.001F), MathUtils.random(0.001F), MathUtils.random(0.001F));
-                    }
+            if (!intersects) return;
 
-                    float xDiff = Math.signum(position.x - e.position.x);
-                    float yDiff = Math.signum(position.y - e.position.y);
-                    float zDiff = Math.signum(position.z - e.position.z);
-                    float force = Math.min(2.0F / dst, 100.0F);
-                    sourceEntity.onceVelocity.add(xDiff * force, yDiff * force, zDiff * force);
-                }
+            Vector3 position = sourceEntity.position;
+            float dst = position.dst(e.position);
+            if (dst == 0.0F) {
+                position.add(MathUtils.random(0.001F), MathUtils.random(0.001F), MathUtils.random(0.001F));
             }
+
+            float xDiff = Math.signum(position.x - e.position.x);
+            float yDiff = Math.signum(position.y - e.position.y);
+            float zDiff = Math.signum(position.z - e.position.z);
+            float force = Math.min(2.0F / dst, 100.0F);
+            sourceEntity.onceVelocity.add(xDiff * force, yDiff * force, zDiff * force);
 
         });
     }
