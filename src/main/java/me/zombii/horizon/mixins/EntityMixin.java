@@ -45,10 +45,10 @@ public abstract class EntityMixin implements HEntity {
      * @author Mr_Zombii
      * @reason Start Collision Re-write
      */
-//    @Overwrite
-//    public void updatePositions(Zone zone, float deltaTime) {
-//        EntityCollision.updatePositions((Entity & HEntity) (Object) this, zone, deltaTime);
-//    }
+    @Overwrite
+    public void updatePositions(Zone zone, float deltaTime) {
+        EntityCollision.updatePositions((Entity & HEntity) (Object) this, zone, deltaTime);
+    }
 
     @Override
     public EntityChunk hGetCurrentChunk() {

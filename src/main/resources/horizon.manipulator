@@ -4,52 +4,29 @@ public field finalforeach/cosmicreach/entities/Entity tmpBlockBoundingBox
 public field finalforeach/cosmicreach/entities/Entity tmpBlockBoundingBoxes
 public field finalforeach/cosmicreach/entities/Entity tmpEntityBoundingBox2
 public field finalforeach/cosmicreach/entities/Entity tmpBlockBoundingBox2
+public field finalforeach/cosmicreach/entities/Entity acceleration
+public field finalforeach/cosmicreach/entities/Entity posDiff
+public field finalforeach/cosmicreach/entities/Entity targetPosition
 public field finalforeach/cosmicreach/entities/Entity footstepTimer
 public field finalforeach/cosmicreach/entities/Entity floorFriction
 public field finalforeach/cosmicreach/entities/Entity blockBouncinessY
 public method finalforeach/cosmicreach/entities/Entity shouldConstrainBySneak (Lfinalforeach/cosmicreach/world/Zone;Lcom/badlogic/gdx/math/collision/BoundingBox;Lcom/badlogic/gdx/math/collision/BoundingBox;IIIII;)Z
 public method finalforeach/cosmicreach/entities/Entity sendPositionPacket ()V
 
-public method finalforeach/cosmicreach/rendering/BatchCoords blockX ()I
-public method finalforeach/cosmicreach/rendering/BatchCoords blockY ()I
-public method finalforeach/cosmicreach/rendering/BatchCoords blockZ ()I
-
 public field finalforeach/cosmicreach/rendering/MeshData shader
 public field finalforeach/cosmicreach/rendering/MeshData vertices
 public field finalforeach/cosmicreach/rendering/MeshData renderOrder
-
-public field finalforeach/cosmicreach/rendering/BatchMaterial batchCoords
-public field finalforeach/cosmicreach/rendering/BatchMaterial shader
-public field finalforeach/cosmicreach/rendering/BatchMaterial renderOrder
-
-public field finalforeach/cosmicreach/rendering/ChunkBatch seen
-public field finalforeach/cosmicreach/rendering/ChunkBatch chunkMeshGroups
-public field finalforeach/cosmicreach/rendering/ChunkBatch disposed
-public field finalforeach/cosmicreach/rendering/ChunkBatch boundingBox
-
-public field finalforeach/cosmicreach/items/loot/Loot lootId
-public field finalforeach/cosmicreach/items/loot/Loot options
-public field finalforeach/cosmicreach/items/loot/LootOption lootStacks
-public field finalforeach/cosmicreach/items/loot/LootOption weight
-public field finalforeach/cosmicreach/items/loot/LootStack item
-public field finalforeach/cosmicreach/items/loot/LootStack minAmount
-public field finalforeach/cosmicreach/items/loot/LootStack maxAmount
-
-public field finalforeach/cosmicreach/savelib/crbin/CRBinDeserializer altSchemas
-public field finalforeach/cosmicreach/savelib/crbin/CRBinDeserializer strings
-public method finalforeach/cosmicreach/savelib/crbin/CRBinDeserializer readDataFromSchema (Lfinalforeach/cosmicreach/savelib/crbin/CRBinSchema;Ljava/nio/ByteBuffer;)V
-public field finalforeach/cosmicreach/savelib/crbin/CRBinDeserializer classDeserializers
-public field finalforeach/cosmicreach/savelib/crbin/CRBinDeserializer defaultClassDeserializers
-
-public field finalforeach/cosmicreach/savelib/crbin/CRBinSerializer defaultClassSerializers
-
-public field finalforeach/cosmicreach/networking/GamePacket idsToPackets
-public field finalforeach/cosmicreach/networking/GamePacket packetsToIntIds
-public field finalforeach/cosmicreach/networking/GamePacket packetNamesToIntIds
-public field finalforeach/cosmicreach/networking/GamePacket packetNamesToClasses
 
 public field finalforeach/cosmicreach/world/Zone chunks
 public field finalforeach/cosmicreach/world/Zone lightPropagator
 public method finalforeach/cosmicreach/world/Zone <init> ()V
 public field finalforeach/cosmicreach/rendering/items/ItemRenderer referenceMap
 public field finalforeach/cosmicreach/rendering/items/ItemRenderer modelCreators
+
+public field finalforeach/cosmicreach/rendering/items/ItemRenderer modelCreators
+
+public field finalforeach/cosmicreach/savelib/crbin/CRBinSerializer defaultClassSerializers
+public field finalforeach/cosmicreach/savelib/crbin/CRBinDeserializer defaultClassDeserializers
+
+public field com/badlogic/gdx/math/collision/BoundingBox cnt
+public field com/badlogic/gdx/math/collision/BoundingBox dim

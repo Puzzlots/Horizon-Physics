@@ -1,6 +1,7 @@
 package me.zombii.horizon.collision.vanilla;
 
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import dev.puzzleshq.puzzleloader.loader.util.ReflectionUtil;
@@ -28,20 +29,124 @@ public class EntityCollision {
      *  Vanilla facing method: {@link Entity#updatePositions(Zone, float)}
      */
     public static <T extends Entity & IEntity & HEntity> void updatePositions(T entity, Zone zone, float deltaTime) {
-        if (entity instanceof IPhysicEntity && !(entity instanceof PlayerEntity)) return;
-        if (entity instanceof PlayerEntity) return;
+        if (entity.currentChunk != null) {
+            entity.blockBouncinessY = 0.0F;
+            boolean wasOnGround = entity.isOnGround;
+            entity.lastPosition.set(entity.position);
+            float ax = entity.acceleration.x * deltaTime;
+            float ay = entity.acceleration.y * deltaTime;
+            float az = entity.acceleration.z * deltaTime;
+            entity.velocity.add(ax, ay, az);
+            float oldVelocityY = entity.velocity.y;
+            if (entity.isNoClip()) {
+                entity.floorFriction = 1.0F;
+                EntityUtils.applyFriction(1.0F, entity.velocity);
+            } else {
+                EntityUtils.applyFriction(entity.floorFriction, entity.velocity);
+            }
 
-        if (entity.hGetCurrentChunk() != null) {
-            entity.isOnGround = false;
+            entity.velocity.add(entity.onceVelocity);
+            float vx = entity.velocity.x * deltaTime;
+            float vy = entity.velocity.y * deltaTime;
+            float vz = entity.velocity.z * deltaTime;
+            entity.posDiff.set(vx, vy, vz);
+            entity.targetPosition.set(entity.position).add(entity.posDiff);
+            if (entity.isNoClip()) {
+                entity.position.add(entity.posDiff);
+                entity.velocity.sub(entity.onceVelocity);
+            } else {
+                float d = entity.targetPosition.dst(entity.position);
+                if (d < 1.0F) {
+                    entity.updateConstraints(zone, entity.targetPosition);
+                } else {
+                    entity.posDiff.set(entity.targetPosition).sub(entity.position).scl(1.0F / d);
+                    entity.targetPosition.set(entity.position);
+                    float floor = (float)Math.floor((double)d);
 
+                    for(float l = 0.0F; l < floor; ++l) {
+                        entity.targetPosition.add(entity.posDiff);
+                        entity.updateConstraints(zone, entity.targetPosition);
+                    }
 
+                    if (d - floor > 0.0F) {
+                        entity.posDiff.scl(d - floor);
+                        entity.targetPosition.add(entity.posDiff);
+                        entity.updateConstraints(zone, entity.targetPosition);
+                    }
+                }
 
-            entity.hResetAcceleration();
+                if (entity.isOnGround && !wasOnGround) {
+                    float displacement = entity.position.y - entity.lastPosition.y;
+                    double initialSquared = Math.pow((double)oldVelocityY, (double)2.0F);
+                    float finalVelocity = (float)Math.sqrt(initialSquared + (double)(2.0F * entity.acceleration.y * displacement));
+                    if (Float.isNaN(finalVelocity)) {
+                        finalVelocity = 0.0F;
+                    }
+
+                    float entityBounciness = entity.getBounciness();
+                    float bounceSign = Math.signum(entity.blockBouncinessY);
+                    if (bounceSign == 0.0F) {
+                        bounceSign = 1.0F;
+                    }
+
+                    float bounceFactor = Math.max(Math.abs(entity.blockBouncinessY), entityBounciness) * bounceSign;
+                    entity.velocity.y = finalVelocity * bounceFactor;
+                    entity.fallDamage.onLand(entity, (finalVelocity + ay / 2.0F) * (1.0F - bounceFactor));
+                } else {
+                    entity.velocity.sub(entity.onceVelocity);
+                }
+            }
+
+            entity.getBoundingBox(entity.globalBoundingBox);
+            entity.acceleration.setZero();
+            entity.onceVelocity.setZero();
+            if (entity.isOnGround) {
+                if (wasOnGround) {
+                    entity.velocity.y = 0.0F;
+                }
+
+                if (entity.footstepTimer >= 0.45F) {
+                    entity.playFootstepSound();
+                }
+
+                float dist = Vector2.dst2(entity.lastPosition.x, entity.lastPosition.z, entity.position.x, entity.position.z) / deltaTime;
+                if (entity.position.x - entity.lastPosition.x != 0.0F || entity.position.z - entity.lastPosition.z != 0.0F) {
+                    float factor = 1.0F;
+                    if ((double)dist > 0.3) {
+                        factor = 2.0F;
+                    }
+
+                    if ((double)dist < 0.1) {
+                        factor = 0.5F;
+                    }
+
+                    if ((double)dist < 0.02) {
+                        factor = 0.0F;
+                    }
+
+                    entity.footstepTimer += deltaTime * factor;
+                }
+            }
         }
 
         EntityUtils.updateEntityChunk(zone, entity);
         entity.sendPositionPacket();
     }
+//    public static <T extends Entity & IEntity & HEntity> void updatePositions(T entity, Zone zone, float deltaTime) {
+//        if (entity instanceof IPhysicEntity && !(entity instanceof PlayerEntity)) return;
+//        if (entity instanceof PlayerEntity) return;
+
+//        if (entity.hGetCurrentChunk() != null) {
+//            entity.isOnGround = false;
+//
+//
+//
+//            entity.hResetAcceleration();
+//        }
+//
+//        EntityUtils.updateEntityChunk(zone, entity);
+//        entity.sendPositionPacket();
+//    }
 
 
 //    static final AABB TMP_AABB = new AABB();

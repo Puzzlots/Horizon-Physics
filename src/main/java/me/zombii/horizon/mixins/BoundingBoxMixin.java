@@ -147,4 +147,74 @@ public abstract class BoundingBoxMixin implements ExtendedBoundingBox {
         }
     }
 
+
+    @Shadow public abstract boolean isValid();
+    @Final
+    @Shadow
+    private static Vector3 tmpVector;
+    @Final
+    @Shadow
+    private Vector3 cnt;
+    @Final
+    @Shadow
+    private Vector3 dim;
+
+    /**
+     * @author Mr_Zombii
+     * @reason Add OrientedBoundingBoxCompat
+     */
+    @Overwrite
+    public boolean contains(BoundingBox b) {
+        if (((ExtendedBoundingBox)b).hasInnerBounds() && hasInnerBounds())
+            return getInnerBounds().contains(((ExtendedBoundingBox)b).getInnerBounds());
+        if (hasInnerBounds()) return getInnerBounds().contains(b);
+
+        return !this.isValid() || this.min.x <= b.min.x && this.min.y <= b.min.y && this.min.z <= b.min.z && this.max.x >= b.max.x && this.max.y >= b.max.y && this.max.z >= b.max.z;
+    }
+
+    /**
+     * @author Mr_Zombii
+     * @reason Add OrientedBoundingBoxCompat
+     */
+    @Overwrite
+    public boolean contains(OrientedBoundingBox obb) {
+        if (hasInnerBounds()) return getInnerBounds().contains(obb);
+
+        return this.contains(obb.getCorner000(tmpVector)) && this.contains(obb.getCorner001(tmpVector)) && this.contains(obb.getCorner010(tmpVector)) && this.contains(obb.getCorner011(tmpVector)) && this.contains(obb.getCorner100(tmpVector)) && this.contains(obb.getCorner101(tmpVector)) && this.contains(obb.getCorner110(tmpVector)) && this.contains(obb.getCorner111(tmpVector));
+    }
+
+    /**
+     * @author Mr_Zombii
+     * @reason Add OrientedBoundingBoxCompat
+     */
+    @Overwrite
+    public boolean intersects(BoundingBox b) {
+        if (((ExtendedBoundingBox)b).hasInnerBounds() && hasInnerBounds())
+            return getInnerBounds().intersects(((ExtendedBoundingBox)b).getInnerBounds());
+        if (hasInnerBounds()) return getInnerBounds().intersects(b);
+
+        if (!this.isValid()) {
+            return false;
+        } else {
+            float lx = Math.abs(this.cnt.x - b.cnt.x);
+            float sumx = this.dim.x / 2.0F + b.dim.x / 2.0F;
+            float ly = Math.abs(this.cnt.y - b.cnt.y);
+            float sumy = this.dim.y / 2.0F + b.dim.y / 2.0F;
+            float lz = Math.abs(this.cnt.z - b.cnt.z);
+            float sumz = this.dim.z / 2.0F + b.dim.z / 2.0F;
+            return lx <= sumx && ly <= sumy && lz <= sumz;
+        }
+    }
+
+    /**
+     * @author Mr_Zombii
+     * @reason Add OrientedBoundingBoxCompat
+     */
+    @Overwrite
+    public boolean contains(Vector3 v) {
+        if (hasInnerBounds()) return getInnerBounds().contains(v);
+
+        return this.min.x <= v.x && this.max.x >= v.x && this.min.y <= v.y && this.max.y >= v.y && this.min.z <= v.z && this.max.z >= v.z;
+    }
+
 }

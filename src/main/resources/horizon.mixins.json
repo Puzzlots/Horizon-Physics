@@ -12,6 +12,7 @@
     "EntityPositionPacketMixin",
     "FixupMixin",
     "IntersectorMixin",
+    "MixinEntityUtils",
     "PlayerEntityMixin"
   ],
   "client": [],
