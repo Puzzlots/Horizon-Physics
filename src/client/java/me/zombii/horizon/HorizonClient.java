@@ -1,9 +1,15 @@
 package me.zombii.horizon;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import dev.puzzleshq.puzzleloader.cosmic.core.modInitialises.ClientPostModInit;
 import dev.puzzleshq.puzzleloader.cosmic.core.modInitialises.ClientPreModInit;
 import finalforeach.cosmicreach.Threads;
+import finalforeach.cosmicreach.blockentities.CustomUIBlockEntity;
+import finalforeach.cosmicreach.blocks.BlockPosition;
+import finalforeach.cosmicreach.items.ISlotContainerParent;
+import finalforeach.cosmicreach.savelib.utils.TriConsumer;
+import finalforeach.cosmicreach.ui.screens.custom.CustomItemScreen;
 import me.zombii.horizon.mesh.MeshInstancer;
 import me.zombii.horizon.threading.LidarThread;
 import me.zombii.horizon.threading.MeshingThread;
@@ -12,6 +18,8 @@ import me.zombii.horizon.util.DebugRenderUtil;
 import me.zombii.horizon.util.InGameAccess;
 import me.zombii.horizon.util.ItemRegistrar;
 import me.zombii.horizon.world.physics.ChunkMeta;
+
+import static finalforeach.cosmicreach.ui.screens.custom.CustomScreenButtonEvents.buttonEvents;
 
 public class HorizonClient implements ClientPreModInit, ClientPostModInit {
 
@@ -36,5 +44,31 @@ public class HorizonClient implements ClientPreModInit, ClientPostModInit {
 
             DebugRenderUtil.renderRigidBody(InGameAccess.getAccess().getShapeRenderer(), c.body);
         };
+
+//        buttonEvents.put("runTrigger", (button, screen, data) -> {
+//            String triggerId = data.getString("triggerId", "");
+//            button.addListener((event) -> {
+//                if (event instanceof InputEvent ie) {
+//                    if (ie.getType() != InputEvent.Type.touchDown) {
+//                        return false;
+//                    }
+//
+//                    if (screen instanceof CustomItemScreen itemScreen) {
+//                        ISlotContainerParent patt0$temp = itemScreen.itemComponent.parent;
+//                        if (patt0$temp instanceof CustomUIBlockEntity be) {
+//                            BlockPosition bp = BlockPosition.ofGlobal(be.getZone(), be.getGlobalX(), be.getGlobalY(), be.getGlobalZ());
+//                            Object netId = button.getUserObject();
+//                            if (netId != null) {
+//                                netId = netId.toString();
+//                            }
+//
+//                            screen.runTrigger(data, (String)netId, triggerId, bp);
+//                        }
+//                    }
+//                }
+//
+//                return false;
+//            });
+//        });
     }
 }

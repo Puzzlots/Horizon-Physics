@@ -4,10 +4,7 @@ import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.entities.EntityCreator;
 import finalforeach.cosmicreach.savelib.crbin.CRBinDeserializer;
 import me.zombii.horizon.HorizonConstants;
-import me.zombii.horizon.entity.BasicPhysicsEntity;
-import me.zombii.horizon.entity.BasicShipEntity;
-import me.zombii.horizon.entity.Cube;
-import me.zombii.horizon.entity.WorldCube;
+import me.zombii.horizon.entity.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -38,6 +35,7 @@ public class FixupMixin {
         EntityCreator.registerEntityCreator(HorizonConstants.MOD_ID + ":ship", BasicShipEntity::new);
 
         EntityCreator.registerEntityCreator(HorizonConstants.MOD_ID + ":cube", Cube::new);
+        EntityCreator.registerEntityCreator(HorizonConstants.MOD_ID + ":c4", C4::new);
     }
 
 }

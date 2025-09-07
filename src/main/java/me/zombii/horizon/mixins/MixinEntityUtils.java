@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.collision.OrientedBoundingBox;
 import finalforeach.cosmicreach.entities.CommonEntityTags;
 import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.entities.EntityUtils;
+import finalforeach.cosmicreach.entities.player.PlayerEntity;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -31,7 +32,7 @@ public class MixinEntityUtils {
             if (boundBoxA.hasInnerBounds() && boundBoxB.hasInnerBounds()) intersects = boundBoxA.getInnerBounds().intersects(boundBoxB.getInnerBounds());
             if (boundBoxA.hasInnerBounds() && !boundBoxB.hasInnerBounds()) intersects = boundBoxA.getInnerBounds().intersects(boundBoxB);
             if (!boundBoxA.hasInnerBounds() && boundBoxB.hasInnerBounds()) intersects = boundBoxB.getInnerBounds().intersects(boundBoxA);
-            if (!boundBoxA.hasInnerBounds() && !boundBoxB.hasInnerBounds()) intersects = boundBoxB.intersects(boundBoxA);
+            if (!boundBoxA.hasInnerBounds() && !boundBoxB.hasInnerBounds()) intersects = boundBoxA.intersects(boundBoxB);
 
             if (!intersects) return;
 
@@ -46,7 +47,6 @@ public class MixinEntityUtils {
             float zDiff = Math.signum(position.z - e.position.z);
             float force = Math.min(2.0F / dst, 100.0F);
             sourceEntity.onceVelocity.add(xDiff * force, yDiff * force, zDiff * force);
-
         });
     }
 

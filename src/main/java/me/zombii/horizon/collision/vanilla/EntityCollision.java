@@ -1,18 +1,23 @@
 package me.zombii.horizon.collision.vanilla;
 
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.math.collision.OrientedBoundingBox;
+import com.badlogic.gdx.utils.Array;
 import dev.puzzleshq.puzzleloader.loader.util.ReflectionUtil;
 import finalforeach.cosmicreach.blocks.BlockPosition;
 import finalforeach.cosmicreach.blocks.BlockState;
 import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.entities.EntityUtils;
 import finalforeach.cosmicreach.entities.player.PlayerEntity;
+import finalforeach.cosmicreach.util.Axis;
 import finalforeach.cosmicreach.world.Zone;
 import io.github.puzzle.cosmic.api.entity.IEntity;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
+import me.zombii.horizon.collision.Collision3D;
 import me.zombii.horizon.entity.api.HEntity;
 import me.zombii.horizon.entity.api.IPhysicEntity;
 import me.zombii.horizon.entity.api.IVirtualZoneEntity;
@@ -57,27 +62,27 @@ public class EntityCollision {
             } else {
                 float d = entity.targetPosition.dst(entity.position);
                 if (d < 1.0F) {
-                    entity.updateConstraints(zone, entity.targetPosition);
+                    updateConstraints(entity, zone, entity.targetPosition);
                 } else {
                     entity.posDiff.set(entity.targetPosition).sub(entity.position).scl(1.0F / d);
                     entity.targetPosition.set(entity.position);
-                    float floor = (float)Math.floor((double)d);
+                    float floor = (float)Math.floor(d);
 
                     for(float l = 0.0F; l < floor; ++l) {
                         entity.targetPosition.add(entity.posDiff);
-                        entity.updateConstraints(zone, entity.targetPosition);
+                        updateConstraints(entity, zone, entity.targetPosition);
                     }
 
                     if (d - floor > 0.0F) {
                         entity.posDiff.scl(d - floor);
                         entity.targetPosition.add(entity.posDiff);
-                        entity.updateConstraints(zone, entity.targetPosition);
+                        updateConstraints(entity, zone, entity.targetPosition);
                     }
                 }
 
                 if (entity.isOnGround && !wasOnGround) {
                     float displacement = entity.position.y - entity.lastPosition.y;
-                    double initialSquared = Math.pow((double)oldVelocityY, (double)2.0F);
+                    double initialSquared = Math.pow(oldVelocityY, 2.0F);
                     float finalVelocity = (float)Math.sqrt(initialSquared + (double)(2.0F * entity.acceleration.y * displacement));
                     if (Float.isNaN(finalVelocity)) {
                         finalVelocity = 0.0F;
@@ -132,6 +137,285 @@ public class EntityCollision {
         EntityUtils.updateEntityChunk(zone, entity);
         entity.sendPositionPacket();
     }
+
+    public static <T extends Entity & IEntity & HEntity> void updateConstraints(T entity, Zone zone, Vector3 targetPosition) {
+        entity.forEachEntityInNearbyChunks((e) -> {
+            if (entity == e) return;
+            if (((ExtendedBoundingBox)entity.globalBoundingBox).hasInnerBounds()) return;
+            if (!((ExtendedBoundingBox)e.globalBoundingBox).hasInnerBounds()) return;
+            OrientedBoundingBox boundingBox = ((ExtendedBoundingBox)e.globalBoundingBox).getInnerBounds();
+
+            Vector3 response = Collision3D.getCollisionResponse(entity.globalBoundingBox, boundingBox);
+            targetPosition.sub(response);
+        });
+        updateConstraintsA(entity, zone, targetPosition);
+    }
+
+    /**
+     *  Vanilla facing method: {@link Entity#updateConstraints(Zone, Vector3)}
+     */
+    public static <T extends Entity & IEntity & HEntity> void updateConstraintsA(T entity, Zone zone, Vector3 targetPosition) {
+        float floorFriction = 0.0F;
+        entity.tmpEntityBoundingBox.set(entity.localBoundingBox);
+        entity.tmpEntityBoundingBox.min.add(entity.position);
+        entity.tmpEntityBoundingBox.max.add(entity.position);
+        entity.tmpEntityBoundingBox.min.y = entity.localBoundingBox.min.y + targetPosition.y;
+        entity.tmpEntityBoundingBox.max.y = entity.localBoundingBox.max.y + targetPosition.y;
+        entity.tmpEntityBoundingBox.update();
+        entity.collidedX = false;
+        entity.collidedY = false;
+        entity.collidedZ = false;
+        int minBx = (int)Math.floor(entity.tmpEntityBoundingBox.min.x);
+        int minBy = (int)Math.floor(entity.tmpEntityBoundingBox.min.y);
+        int minBz = (int)Math.floor(entity.tmpEntityBoundingBox.min.z);
+        int maxBx = (int)Math.floor(entity.tmpEntityBoundingBox.max.x);
+        int maxBy = (int)Math.floor(entity.tmpEntityBoundingBox.max.y);
+        int maxBz = (int)Math.floor(entity.tmpEntityBoundingBox.max.z);
+        boolean isOnGround = false;
+        float minPosY = targetPosition.y;
+        float maxPosY = targetPosition.y;
+
+        for(int bx = minBx; bx <= maxBx; ++bx) {
+            for(int by = minBy; by <= maxBy; ++by) {
+                for(int bz = minBz; bz <= maxBz; ++bz) {
+                    BlockState blockAdj = zone.getBlockState(bx, by, bz);
+                    if (blockAdj != null && !blockAdj.walkThrough) {
+                        blockAdj.getBoundingBox(entity.tmpBlockBoundingBox, bx, by, bz);
+                        if (entity.tmpBlockBoundingBox.intersects(entity.tmpEntityBoundingBox)) {
+                            blockAdj.getAllBoundingBoxes(entity.tmpBlockBoundingBoxes, bx, by, bz);
+                            float oldY = entity.tmpEntityBoundingBox.min.y;
+
+                            for (BoundingBox bb : entity.tmpBlockBoundingBoxes) {
+                                if (bb.intersects(entity.tmpEntityBoundingBox)) {
+                                    entity.velocity.y = 0.0F;
+                                    entity.onceVelocity.y = 0.0F;
+                                    if (oldY <= bb.max.y && oldY >= bb.min.y) {
+                                        minPosY = Math.max(minPosY, bb.max.y - entity.localBoundingBox.min.y);
+                                        maxPosY = Math.max(maxPosY, minPosY);
+                                        if (!entity.isOnGround) {
+                                            entity.footstepTimer = 0.45F;
+                                        }
+
+                                        isOnGround = true;
+                                        floorFriction = Math.max(floorFriction, blockAdj.friction);
+                                        entity.blockBouncinessY = Math.max(entity.blockBouncinessY, blockAdj.bounciness);
+                                    } else {
+                                        maxPosY = Math.min(maxPosY, bb.min.y - entity.localBoundingBox.getHeight() - 0.01F);
+                                        entity.blockBouncinessY = Math.min(entity.blockBouncinessY, -blockAdj.bounciness);
+                                    }
+
+                                    entity.collidedY = true;
+                                    entity.onCollideWithBlock(Axis.Y, blockAdj, targetPosition, bx, by, bz);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (isOnGround) {
+            entity.floorFriction = floorFriction;
+        } else if (!entity.isInFluid() && !entity.isNoClip()) {
+            entity.floorFriction = 0.1F;
+        } else {
+            entity.floorFriction = 1.0F;
+        }
+
+        targetPosition.y = MathUtils.clamp(targetPosition.y, minPosY, maxPosY);
+        entity.isOnGround = isOnGround;
+        entity.tmpEntityBoundingBox.min.x = entity.localBoundingBox.min.x + targetPosition.x;
+        entity.tmpEntityBoundingBox.max.x = entity.localBoundingBox.max.x + targetPosition.x;
+        entity.tmpEntityBoundingBox.min.y = entity.localBoundingBox.min.y + targetPosition.y + 0.01F;
+        entity.tmpEntityBoundingBox.max.y = entity.localBoundingBox.max.y + targetPosition.y;
+        entity.tmpEntityBoundingBox.update();
+        minBx = (int)Math.floor(entity.tmpEntityBoundingBox.min.x);
+        minBy = (int)Math.floor(entity.tmpEntityBoundingBox.min.y);
+        minBz = (int)Math.floor(entity.tmpEntityBoundingBox.min.z);
+        maxBx = (int)Math.floor(entity.tmpEntityBoundingBox.max.x);
+        maxBy = (int)Math.floor(entity.tmpEntityBoundingBox.max.y);
+        maxBz = (int)Math.floor(entity.tmpEntityBoundingBox.max.z);
+        boolean constrainBySneaking = entity.shouldConstrainBySneak(zone, entity.tmpBlockBoundingBox, entity.tmpEntityBoundingBox, minBx, minBy, minBz, maxBx, maxBz);
+        if (constrainBySneaking) {
+            entity.onceVelocity.x = 0.0F;
+            entity.velocity.x = 0.0F;
+            targetPosition.x = entity.position.x;
+        }
+
+        boolean steppedUpForAll = true;
+        float desiredStepUp = targetPosition.y;
+        if (!constrainBySneaking) {
+            for(int bx = minBx; bx <= maxBx; ++bx) {
+                for(int by = minBy; by <= maxBy; ++by) {
+                    for(int bz = minBz; bz <= maxBz; ++bz) {
+                        BlockState blockAdj = zone.getBlockState(bx, by, bz);
+                        if (blockAdj != null && !blockAdj.walkThrough) {
+                            blockAdj.getBoundingBox(entity.tmpBlockBoundingBox, bx, by, bz);
+                            if (entity.tmpBlockBoundingBox.intersects(entity.tmpEntityBoundingBox)) {
+                                boolean didStepUp = false;
+
+                                for (BoundingBox bb : blockAdj.getAllBoundingBoxes(entity.tmpBlockBoundingBoxes, bx, by, bz)) {
+                                    if (bb.intersects(entity.tmpEntityBoundingBox)) {
+                                        if (!isOnGround || !(bb.max.y - entity.tmpEntityBoundingBox.min.y <= entity.maxStepHeight) || !(bb.max.y > entity.tmpEntityBoundingBox.min.y)) {
+                                            didStepUp = false;
+                                            steppedUpForAll = false;
+                                            break;
+                                        }
+
+                                        float currentDesiredStepUp = Math.max(desiredStepUp, bb.max.y - entity.localBoundingBox.min.y);
+                                        entity.tmpEntityBoundingBox2.set(entity.tmpEntityBoundingBox);
+                                        entity.tmpEntityBoundingBox2.min.y = currentDesiredStepUp;
+                                        entity.tmpEntityBoundingBox2.max.y = currentDesiredStepUp + entity.localBoundingBox.getHeight();
+                                        entity.tmpEntityBoundingBox2.update();
+                                        boolean canStepUp = true;
+
+                                        label267:
+                                        for (int bax = minBx; bax <= maxBx; ++bax) {
+                                            for (int bay = by + 1; bay <= maxBy + 1; ++bay) {
+                                                for (int baz = minBz; baz <= maxBz; ++baz) {
+                                                    BlockState blockAbove = zone.getBlockState(bax, bay, baz);
+                                                    if (blockAbove != null && !blockAbove.walkThrough) {
+                                                        blockAbove.getBoundingBox(entity.tmpBlockBoundingBox2, bax, bay, baz);
+                                                        canStepUp &= !entity.tmpBlockBoundingBox2.intersects(entity.tmpEntityBoundingBox2);
+                                                        if (!canStepUp) {
+                                                            break label267;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if (canStepUp) {
+                                            desiredStepUp = currentDesiredStepUp;
+                                            didStepUp = true;
+                                        }
+                                    }
+                                }
+
+                                if (!didStepUp) {
+
+                                    for (BoundingBox bb : blockAdj.getAllBoundingBoxes(entity.tmpBlockBoundingBoxes, bx, by, bz)) {
+                                        if (bb.intersects(entity.tmpEntityBoundingBox)) {
+                                            float centX = entity.tmpBlockBoundingBox.getCenterX();
+                                            if (centX > targetPosition.x) {
+                                                targetPosition.x = bb.min.x - entity.tmpEntityBoundingBox.getWidth() / 2.0F - 0.01F;
+                                            } else {
+                                                targetPosition.x = bb.max.x + entity.tmpEntityBoundingBox.getWidth() / 2.0F + 0.01F;
+                                            }
+
+                                            entity.onCollideWithBlock(Axis.X, blockAdj, targetPosition, bx, by, bz);
+                                            entity.collidedX = true;
+                                            entity.onceVelocity.x = 0.0F;
+                                            entity.velocity.x = 0.0F;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (steppedUpForAll) {
+            targetPosition.y = desiredStepUp;
+        }
+
+        entity.tmpEntityBoundingBox.min.set(entity.localBoundingBox.min).add(targetPosition.x, targetPosition.y + 0.01F, targetPosition.z);
+        entity.tmpEntityBoundingBox.max.set(entity.localBoundingBox.max).add(targetPosition);
+        entity.tmpEntityBoundingBox.update();
+        minBx = (int)Math.floor((double)entity.tmpEntityBoundingBox.min.x);
+        minBy = (int)Math.floor((double)entity.tmpEntityBoundingBox.min.y);
+        minBz = (int)Math.floor((double)entity.tmpEntityBoundingBox.min.z);
+        maxBx = (int)Math.floor((double)entity.tmpEntityBoundingBox.max.x);
+        maxBy = (int)Math.floor((double)entity.tmpEntityBoundingBox.max.y);
+        maxBz = (int)Math.floor((double)entity.tmpEntityBoundingBox.max.z);
+        constrainBySneaking = entity.shouldConstrainBySneak(zone, entity.tmpBlockBoundingBox, entity.tmpEntityBoundingBox, minBx, minBy, minBz, maxBx, maxBz);
+        steppedUpForAll = true;
+        desiredStepUp = targetPosition.y;
+        if (constrainBySneaking) {
+            entity.onceVelocity.z = 0.0F;
+            entity.velocity.z = 0.0F;
+            targetPosition.z = entity.position.z;
+        } else {
+            for(int bx = minBx; bx <= maxBx; ++bx) {
+                for(int by = minBy; by <= maxBy; ++by) {
+                    for(int bz = minBz; bz <= maxBz; ++bz) {
+                        BlockState blockAdj = zone.getBlockState(bx, by, bz);
+                        if (blockAdj != null && !blockAdj.walkThrough) {
+                            blockAdj.getBoundingBox(entity.tmpBlockBoundingBox, bx, by, bz);
+                            if (entity.tmpBlockBoundingBox.intersects(entity.tmpEntityBoundingBox)) {
+                                boolean didStepUp = false;
+
+                                for (BoundingBox bb : blockAdj.getAllBoundingBoxes(entity.tmpBlockBoundingBoxes, bx, by, bz)) {
+                                    if (bb.intersects(entity.tmpEntityBoundingBox)) {
+                                        if (!isOnGround || !(bb.max.y - entity.tmpEntityBoundingBox.min.y <= entity.maxStepHeight) || !(bb.max.y > entity.tmpEntityBoundingBox.min.y)) {
+                                            didStepUp = false;
+                                            steppedUpForAll = false;
+                                            break;
+                                        }
+
+                                        float currentDesiredStepUp = Math.max(desiredStepUp, bb.max.y - entity.localBoundingBox.min.y);
+                                        entity.tmpEntityBoundingBox2.set(entity.tmpEntityBoundingBox);
+                                        entity.tmpEntityBoundingBox2.min.y = currentDesiredStepUp;
+                                        entity.tmpEntityBoundingBox2.max.y = currentDesiredStepUp + entity.localBoundingBox.getHeight();
+                                        entity.tmpEntityBoundingBox2.update();
+                                        boolean canStepUp = true;
+
+                                        label200:
+                                        for (int bax = minBx; bax <= maxBx; ++bax) {
+                                            for (int bay = by + 1; bay <= maxBy + 1; ++bay) {
+                                                for (int baz = minBz; baz <= maxBz; ++baz) {
+                                                    BlockState blockAbove = zone.getBlockState(bax, bay, baz);
+                                                    if (blockAbove != null && !blockAbove.walkThrough) {
+                                                        blockAbove.getBoundingBox(entity.tmpBlockBoundingBox2, bax, bay, baz);
+                                                        canStepUp &= !entity.tmpBlockBoundingBox2.intersects(entity.tmpEntityBoundingBox2);
+                                                        if (!canStepUp) {
+                                                            break label200;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if (canStepUp) {
+                                            desiredStepUp = currentDesiredStepUp;
+                                            didStepUp = true;
+                                        }
+                                    }
+                                }
+
+                                if (!didStepUp) {
+
+                                    for (BoundingBox bb : blockAdj.getAllBoundingBoxes(entity.tmpBlockBoundingBoxes, bx, by, bz)) {
+                                        if (bb.intersects(entity.tmpEntityBoundingBox)) {
+                                            float centZ = entity.tmpBlockBoundingBox.getCenterZ();
+                                            if (centZ > targetPosition.z) {
+                                                targetPosition.z = bb.min.z - entity.tmpEntityBoundingBox.getDepth() / 2.0F - 0.01F;
+                                            } else {
+                                                targetPosition.z = bb.max.z + entity.tmpEntityBoundingBox.getDepth() / 2.0F + 0.01F;
+                                            }
+
+                                            entity.onCollideWithBlock(Axis.Z, blockAdj, targetPosition, bx, by, bz);
+                                            entity.collidedZ = true;
+                                            entity.onceVelocity.z = 0.0F;
+                                            entity.velocity.z = 0.0F;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (steppedUpForAll) {
+            targetPosition.y = desiredStepUp;
+        }
+
+        entity.position.set(targetPosition);
+    }
 //    public static <T extends Entity & IEntity & HEntity> void updatePositions(T entity, Zone zone, float deltaTime) {
 //        if (entity instanceof IPhysicEntity && !(entity instanceof PlayerEntity)) return;
 //        if (entity instanceof PlayerEntity) return;
@@ -162,14 +446,14 @@ public class EntityCollision {
     /**
      *  Vanilla facing method: {@link Entity#updateConstraints(Zone, Vector3)}
      */
-    public static void updateConstraints(Entity theEntity, Zone zone, Vector3 targetPosition) {
-        if (theEntity instanceof IPhysicEntity) return;
-
-        Entity[] entities = zone.getAllEntities().toArray(Entity.class);
-
-
-        theEntity.position.set(targetPosition);
-    }
+//    public static void updateConstraints(Entity theEntity, Zone zone, Vector3 targetPosition) {
+//        if (theEntity instanceof IPhysicEntity) return;
+//
+//        Entity[] entities = zone.getAllEntities().toArray(Entity.class);
+//
+//
+//        theEntity.position.set(targetPosition);
+//    }
 
     private static boolean shouldConstrainBySneak(Entity theEntity, Zone zone, BoundingBox tmpBlockBoundingBox, BoundingBox tmpEntityBoundingBox, int minBx, int minBy, int minBz, int maxBx, int maxBz) {
         Method m = null;

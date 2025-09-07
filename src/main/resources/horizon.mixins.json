@@ -12,6 +12,8 @@
     "EntityPositionPacketMixin",
     "FixupMixin",
     "IntersectorMixin",
+    "MixinBlockEntity",
+    "MixinBlockEvents",
     "MixinEntityUtils",
     "PlayerEntityMixin"
   ],

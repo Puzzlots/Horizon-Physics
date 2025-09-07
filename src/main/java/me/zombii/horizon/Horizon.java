@@ -4,13 +4,19 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.OrientedBoundingBox;
 import dev.puzzleshq.puzzleloader.cosmic.core.modInitialises.ModInit;
+import dev.puzzleshq.puzzleloader.cosmic.core.modInitialises.PostModInit;
 import dev.puzzleshq.puzzleloader.cosmic.game.GameRegistries;
 import dev.puzzleshq.puzzleloader.cosmic.game.events.zone.EventRegisterZoneGenerator;
+import finalforeach.cosmicreach.blockevents.actions.*;
 import finalforeach.cosmicreach.items.Item;
 import finalforeach.cosmicreach.savelib.crbin.CRBinDeserializer;
 import finalforeach.cosmicreach.savelib.crbin.CRBinSerializer;
 import io.github.puzzle.cosmic.api.item.IItem;
 import io.github.puzzle.cosmic.item.AbstractCosmicItem;
+import me.zombii.horizon.blockevents.PhysicBlockActionExplode;
+import me.zombii.horizon.blockevents.PhysicBlockActionRunTrigger;
+import me.zombii.horizon.blockevents.PhysicBlockEventReplaceBlockState;
+import me.zombii.horizon.blockevents.PhysicBlockEventActionSetBlockStateParams;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import me.zombii.horizon.items.*;
 import me.zombii.horizon.items.api.I3DItem;
@@ -21,13 +27,20 @@ import me.zombii.horizon.worldgen.VoidGenerator;
 import me.zombii.horizon.worldgen.SuperFlat;
 import net.neoforged.bus.api.SubscribeEvent;
 
-public class Horizon implements ModInit {
+import java.util.HashMap;
+import java.util.Map;
 
+public class Horizon implements ModInit, PostModInit {
 
+    public static Map<Class<? extends IBlockAction>, Class<? extends IBlockAction>> actionReplacementMap = new HashMap<>(){{
+        put(BlockEventActionSetBlockStateParams.class, PhysicBlockEventActionSetBlockStateParams.class);
+        put(BlockActionReplaceBlockState.class, PhysicBlockEventReplaceBlockState.class);
+        put(BlockActionRunTrigger.class, PhysicBlockActionRunTrigger.class);
+        put(BlockActionExplode.class, PhysicBlockActionExplode.class);
+    }};
 
     @Override
     public void onInit() {
-
 //        if (com.github.puzzle.core.Constants.SIDE != EnvType.CLIENT)
         PhysicsThread.init();
 
@@ -136,4 +149,7 @@ public class Horizon implements ModInit {
         event.registerGenerator(NullGenerator::new);
     }
 
+    @Override
+    public void onPostInit() {
+    }
 }
