@@ -1,6 +1,5 @@
 package me.zombii.horizon.util;
 
-import com.github.puzzle.game.util.Point3DKey;
 import finalforeach.cosmicreach.util.Point3DConsumer;
 import finalforeach.cosmicreach.util.Point3DMap;
 import org.spongepowered.asm.mixin.Unique;
@@ -12,7 +11,7 @@ import java.util.function.Consumer;
 public class APoint3dMap<T> extends Point3DMap<T> {
 
     @Unique
-    final Map<Point3DKey, T> puzzleLoader$objects = new HashMap<>();
+    final Map<me.zombii.horizon.util.Point3DKey, T> puzzleLoader$objects = new HashMap<>();
 
     @Override
     public T get(int x, int y, int z) {

@@ -11,15 +11,15 @@ import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.JsonReader;
-import com.github.puzzle.game.resources.PuzzleGameAssetLoader;
+import dev.puzzleshq.puzzleloader.cosmic.game.util.IndependentAssetLoader;
 import finalforeach.cosmicreach.Threads;
 import finalforeach.cosmicreach.items.Item;
 import finalforeach.cosmicreach.items.ItemStack;
 import finalforeach.cosmicreach.rendering.RenderOrder;
 import finalforeach.cosmicreach.rendering.meshes.MeshData;
 import finalforeach.cosmicreach.rendering.shaders.GameShader;
+import finalforeach.cosmicreach.util.Identifier;
 import io.github.puzzle.cosmic.api.client.model.ICosmicItemModel;
-import io.github.puzzle.cosmic.api.item.IItem;
 import io.github.puzzle.cosmic.api.item.IItemStack;
 import io.github.puzzle.cosmic.impl.client.item.ItemShader;
 import me.zombii.horizon.items.api.I3DItem;
@@ -44,26 +44,16 @@ public class Item3DModel implements ICosmicItemModel {
 
         scalar = i3DItem.getScalar();
 
-        if (loader == null) {
-            Threads.runOnMainThread(() -> {
-                loader = new G3dModelLoader(new JsonReader());
+        if (loader == null) loader = new G3dModelLoader(new JsonReader());
 
-                i3DItem.loadModel(loader, modelInstance);
-            });
-        } else {
-            Threads.runOnMainThread(() -> {
-                synchronized (loader) {
-                    i3DItem.loadModel(loader, modelInstance);
-                }
-            });
-        }
+        Threads.runOnMainThread(() -> i3DItem.loadModel(loader, modelInstance));
 
         Threads.runOnMainThread(() -> {
             environment = new Environment();
-            Texture screenBG = PuzzleGameAssetLoader.LOADER.loadSync("horizon:models/items/g3dj/screen_bg.001.png", Texture.class);
-            Texture toolgun = PuzzleGameAssetLoader.LOADER.loadSync("horizon:models/items/g3dj/toolgun.png", Texture.class);
-            Texture toolgun2 = PuzzleGameAssetLoader.LOADER.loadSync("horizon:models/items/g3dj/toolgun2.png", Texture.class);
-            Texture toolgun3 = PuzzleGameAssetLoader.LOADER.loadSync("horizon:models/items/g3dj/toolgun3.png", Texture.class);
+            Texture screenBG = IndependentAssetLoader.loadResource(Identifier.of("horizon:models/items/g3dj/screen_bg.001.png"), Texture.class);
+            Texture toolgun = IndependentAssetLoader.loadResource(Identifier.of("horizon:models/items/g3dj/toolgun.png"), Texture.class);
+            Texture toolgun2 = IndependentAssetLoader.loadResource(Identifier.of("horizon:models/items/g3dj/toolgun2.png"), Texture.class);
+            Texture toolgun3 = IndependentAssetLoader.loadResource(Identifier.of("horizon:models/items/g3dj/toolgun3.png"), Texture.class);
 
             environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
             environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
@@ -72,11 +62,11 @@ public class Item3DModel implements ICosmicItemModel {
         });
     }
 
-    public void renderGeneric(Vector3 pos, IItemStack stack, Camera cam, Matrix4 tmpMat, boolean isInSlot) {
+    public void renderGeneric(Vector3 pos, ItemStack stack, Camera cam, Matrix4 tmpMat, boolean isInSlot) {
         if (modelInstance.get() != null) {
             tmpMat = tmpMat.cpy();
-            tmpMat.mul(new Matrix4().scl(scalar).inv());
-            tmpMat.scl(scalar);
+//            tmpMat.mul(new Matrix4().scale(scalar.x, scalar.y, scalar.z).inv());
+            tmpMat.scl(scalar.x, scalar.y, scalar.z);
             modelInstance.get().transform.set(tmpMat);
             batch.begin(cam);
             batch.render(modelInstance.get(), environment);
@@ -85,9 +75,9 @@ public class Item3DModel implements ICosmicItemModel {
     }
 
     @Override
-    public void renderInSlot(Vector3 vector3, IItemStack itemStack, Camera camera, Matrix4 matrix4, boolean useAmbientLighting) {
-        Matrix4 matrix5 = new Matrix4();
-        matrix5.setToTranslation(new Vector3(0, 0, 0));
+    public void renderInSlot(Vector3 vector3, ItemStack itemStack, Camera camera, Matrix4 matrix4, boolean useAmbientLighting) {
+//        Matrix4 matrix5 = new Matrix4();
+//        matrix5.setToTranslation(new Vector3(0, 0, 0));
 //        matrix5.translate(0.5F, 0.2F, 0.5F);
 //        matrix5.scale(0.4f, 0.4f, 0.4f);
         Gdx.gl.glDisable(GL30.GL_CULL_FACE);
@@ -99,15 +89,15 @@ public class Item3DModel implements ICosmicItemModel {
 
 
     @Override
-    public void renderAsHeldItem(Vector3 vector3, IItemStack itemStack, Camera camera, float popUpTimer, float maxPopUpTimer, float swingTimer, float maxSwingTimer) {
+    public void renderAsHeldItem(Vector3 vector3, ItemStack itemStack, Camera camera, float popUpTimer, float maxPopUpTimer, float swingTimer, float maxSwingTimer) {
         Matrix4 tmpHeldMat4 = new Matrix4();
+        tmpHeldMat4.idt();
         heldItemCamera.fieldOfView = 50;
         heldItemCamera.viewportHeight = camera.viewportHeight;
         heldItemCamera.viewportWidth = camera.viewportWidth;
         heldItemCamera.near = camera.near;
         heldItemCamera.far = camera.far;
         heldItemCamera.update();
-        tmpHeldMat4.idt();
 //        tmpHeldMat4.setToTranslation(0, 0, 0);
 //        tmpHeldMat4.scale(0.4f, 0.4f, 0.4f);
         tmpHeldMat4.translate(new Vector3(0, 0, 0));
@@ -140,7 +130,7 @@ public class Item3DModel implements ICosmicItemModel {
     }
 
     @Override
-    public void renderAsEntity(Vector3 vector3, IItemStack itemStack, Camera camera, Matrix4 matrix4) {
+    public void renderAsEntity(Vector3 vector3, ItemStack itemStack, Camera camera, Matrix4 matrix4) {
         Gdx.gl.glDisable(GL30.GL_CULL_FACE);
         matrix4.translate(0.5F, 0.2F, 0.5F);
         matrix4.scale(0.4f, 0.4f, 0.4f);

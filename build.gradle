@@ -1,7 +1,7 @@
 plugins {
     id "java"
     id "jigsaw"
-    id "com.github.johnrengelman.shadow"
+    id 'com.gradleup.shadow'
 }
 
 loom {
@@ -29,9 +29,8 @@ dependencies {
     bundle("com.github.mgsx-dev.gdx-gltf:gltf:2.2.1") {
         exclude group: "com.badlogicgames.gdx", module: "gdx"
     }
-    implementation("com.github.PuzzlesHQ:CosmicAPI:$cosmic_api_version")
-    cosmicReach("finalforeach:cosmicreach:$cosmic_reach_version:client")
-//    implementation(files("./lib/PuzzleLoader-69.69.69-bundle.jar"))
+    modImplementation("com.github.PuzzlesHQ:cosmic-api:${cosmic_api_version}")
+    cosmicReach("finalforeach:cosmicreach:$cosmic_reach_version")
 }
 
 processResources {

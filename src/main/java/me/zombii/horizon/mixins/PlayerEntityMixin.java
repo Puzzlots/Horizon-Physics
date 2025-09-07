@@ -1,35 +1,29 @@
 package me.zombii.horizon.mixins;
 
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.OrientedBoundingBox;
-import com.badlogic.gdx.utils.Array;
-import com.github.puzzle.game.util.IClientNetworkManager;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.objects.PhysicsBody;
 import com.jme3.bullet.objects.PhysicsRigidBody;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import finalforeach.cosmicreach.GameSingletons;
 import finalforeach.cosmicreach.TickRunner;
-import finalforeach.cosmicreach.blocks.BlockState;
 import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.entities.player.Player;
 import finalforeach.cosmicreach.entities.player.PlayerEntity;
 import finalforeach.cosmicreach.savelib.crbin.CRBinDeserializer;
 import finalforeach.cosmicreach.savelib.crbin.CRBinSerializer;
-import finalforeach.cosmicreach.util.Axis;
+import finalforeach.cosmicreach.singletons.GameSingletons;
 import finalforeach.cosmicreach.world.Zone;
+import me.zombii.horizon.entity.api.HEntity;
 import me.zombii.horizon.entity.api.IPhysicEntity;
 import me.zombii.horizon.rendering.mesh.IHorizonMesh;
-import me.zombii.horizon.threading.PhysicsThread;
 import me.zombii.horizon.util.ConversionUtil;
 import me.zombii.horizon.util.MatrixUtil;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -38,9 +32,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static finalforeach.cosmicreach.GameSingletons.clientSingletons;
 
 @Mixin(PlayerEntity.class)
 public class PlayerEntityMixin extends Entity implements IPhysicEntity {
@@ -57,10 +48,11 @@ public class PlayerEntityMixin extends Entity implements IPhysicEntity {
 
     @Unique
     private void horizonPhysics$init() {
+        ((HEntity) this).hSetMass(10);
         body = new PhysicsRigidBody(new BoxCollisionShape(ConversionUtil.toJME(localBoundingBox).getExtent(new Vector3f())));
         body.setMass(0);
 
-        if (!IClientNetworkManager.isConnected()){
+        if (GameSingletons.isHost){
             shape = ConversionUtil.toCollisionShape(rBoundingBox);
             body = new PhysicsRigidBody(shape);
             body.setFriction(1f);
@@ -82,7 +74,7 @@ public class PlayerEntityMixin extends Entity implements IPhysicEntity {
     public transient Matrix4 transform;
     public transient Quaternion rotation;
     public transient UUID uuid;
-    public transient Float mass;
+    public transient Float mass = 1f;
     public transient CollisionShape shape;
 
     public transient BoundingBox rBoundingBox = new BoundingBox(new Vector3(-0.25f, 0f,-0.25f), new Vector3(0.25f, 1.9f, 0.25f));
@@ -113,7 +105,7 @@ public class PlayerEntityMixin extends Entity implements IPhysicEntity {
             ((IHorizonMesh) modelInstance).setShouldRefresh(true);
         } catch (Exception ignore) {}
 
-        if (!IClientNetworkManager.isConnected()){
+        if (GameSingletons.isHost){
             body.setPhysicsLocation(new Vector3f(position.x, position.y, position.z));
             body.setPhysicsRotation(rotation);
         }
@@ -128,7 +120,7 @@ public class PlayerEntityMixin extends Entity implements IPhysicEntity {
     }
 
     @Override
-    public @NonNull PhysicsBody getBody() {
+    public PhysicsBody getBody() {
         return body;
     }
 
@@ -148,7 +140,7 @@ public class PlayerEntityMixin extends Entity implements IPhysicEntity {
     }
 
     @Override
-    public @NonNull UUID getUUID() {
+    public UUID getUUID() {
         return uuid;
     }
 

@@ -1,8 +1,8 @@
 package me.zombii.horizon;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.github.puzzle.core.loader.launch.provider.mod.entrypoint.impls.ClientPostModInitializer;
-import com.github.puzzle.core.loader.launch.provider.mod.entrypoint.impls.ClientPreModInitializer;
+import dev.puzzleshq.puzzleloader.cosmic.core.modInitialises.ClientPostModInit;
+import dev.puzzleshq.puzzleloader.cosmic.core.modInitialises.ClientPreModInit;
 import finalforeach.cosmicreach.Threads;
 import me.zombii.horizon.mesh.MeshInstancer;
 import me.zombii.horizon.threading.LidarThread;
@@ -13,10 +13,10 @@ import me.zombii.horizon.util.InGameAccess;
 import me.zombii.horizon.util.ItemRegistrar;
 import me.zombii.horizon.world.physics.ChunkMeta;
 
-public class HorizonClient implements ClientPreModInitializer, ClientPostModInitializer {
+public class HorizonClient implements ClientPreModInit, ClientPostModInit {
 
     @Override
-    public void onPreInit() {
+    public void onClientPreInit() {
         MeshingThread.init();
         LidarThread.init();
         LidarThread.start();
@@ -26,7 +26,7 @@ public class HorizonClient implements ClientPreModInitializer, ClientPostModInit
     }
 
     @Override
-    public void onPostInit() {
+    public void onClientPostInit() {
         HorizonConstants.EXEC = (c) -> {
             if (c.modelInstance == null) return;
 

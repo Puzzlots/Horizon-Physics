@@ -3,22 +3,15 @@ package me.zombii.horizon;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.OrientedBoundingBox;
-import com.github.puzzle.core.loader.provider.mod.entrypoint.impls.ModInitializer;
-import com.github.puzzle.core.localization.ILanguageFile;
-import com.github.puzzle.core.localization.LanguageManager;
-import com.github.puzzle.core.localization.files.LanguageFileVersion1;
-import com.github.puzzle.game.PuzzleRegistries;
-import com.github.puzzle.game.events.OnPreLoadAssetsEvent;
-import com.github.puzzle.game.events.OnRegisterZoneGenerators;
-import com.github.puzzle.game.resources.PuzzleGameAssetLoader;
+import dev.puzzleshq.puzzleloader.cosmic.core.modInitialises.ModInit;
+import dev.puzzleshq.puzzleloader.cosmic.game.GameRegistries;
+import dev.puzzleshq.puzzleloader.cosmic.game.events.zone.EventRegisterZoneGenerator;
 import finalforeach.cosmicreach.items.Item;
 import finalforeach.cosmicreach.savelib.crbin.CRBinDeserializer;
 import finalforeach.cosmicreach.savelib.crbin.CRBinSerializer;
-import finalforeach.cosmicreach.util.Identifier;
 import io.github.puzzle.cosmic.api.item.IItem;
 import io.github.puzzle.cosmic.item.AbstractCosmicItem;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
-import me.zombii.horizon.commands.Commands;
 import me.zombii.horizon.items.*;
 import me.zombii.horizon.items.api.I3DItem;
 import me.zombii.horizon.threading.PhysicsThread;
@@ -26,12 +19,9 @@ import me.zombii.horizon.util.IItemRegistrar;
 import me.zombii.horizon.worldgen.NullGenerator;
 import me.zombii.horizon.worldgen.VoidGenerator;
 import me.zombii.horizon.worldgen.SuperFlat;
-import meteordevelopment.orbit.EventHandler;
+import net.neoforged.bus.api.SubscribeEvent;
 
-import java.io.IOException;
-import java.util.Objects;
-
-public class Horizon implements ModInitializer {
+public class Horizon implements ModInit {
 
 
 
@@ -41,13 +31,12 @@ public class Horizon implements ModInitializer {
 //        if (com.github.puzzle.core.Constants.SIDE != EnvType.CLIENT)
         PhysicsThread.init();
 
-        PuzzleRegistries.EVENT_BUS.subscribe(this);
-        Commands.register();
+        GameRegistries.COSMIC_EVENT_BUS.register(this);
 
         AbstractCosmicItem.register(new MoonScepter());
-        AbstractCosmicItem.register(registerItem(new GravityGun()));
-        AbstractCosmicItem.register(registerItem(new PortalGun()));
-        AbstractCosmicItem.register(registerItem(new ToolGun()));
+        Item.registerItem(registerItemModel(new GravityGun()));
+        Item.registerItem(registerItemModel(new PortalGun()));
+        Item.registerItem(registerItemModel(new ToolGun()));
         AbstractCosmicItem.register(new LidarGun());
 
         CRBinSerializer.defaultClassSerializers.put(BoundingBox.class, (serial, name, bb) -> {
@@ -135,27 +124,16 @@ public class Horizon implements ModInitializer {
         });
     }
 
-    static <T extends I3DItem & IItem & Item> T registerItem(T item) {
+    static <T extends I3DItem & IItem & Item> T registerItemModel(T item) {
         IItemRegistrar.registerItem(item);
         return item;
     }
 
-    @EventHandler
-    public void onEvent(OnRegisterZoneGenerators event) {
+    @SubscribeEvent
+    public void onEvent(EventRegisterZoneGenerator event) {
         event.registerGenerator(VoidGenerator::new);
         event.registerGenerator(SuperFlat::new);
         event.registerGenerator(NullGenerator::new);
-    }
-
-    @EventHandler
-    public void onEvent(OnPreLoadAssetsEvent event) {
-        ILanguageFile lang = null;
-        try {
-            lang = LanguageFileVersion1.loadLanguageFile(Objects.requireNonNull(PuzzleGameAssetLoader.locateAsset(Identifier.of(HorizonConstants.MOD_ID, "languages/en-US.json"))));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        LanguageManager.registerLanguageFile(lang);
     }
 
 }

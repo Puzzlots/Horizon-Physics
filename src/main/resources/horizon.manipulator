@@ -8,6 +8,7 @@ public field finalforeach/cosmicreach/entities/Entity footstepTimer
 public field finalforeach/cosmicreach/entities/Entity floorFriction
 public field finalforeach/cosmicreach/entities/Entity blockBouncinessY
 public method finalforeach/cosmicreach/entities/Entity shouldConstrainBySneak (Lfinalforeach/cosmicreach/world/Zone;Lcom/badlogic/gdx/math/collision/BoundingBox;Lcom/badlogic/gdx/math/collision/BoundingBox;IIIII;)Z
+public method finalforeach/cosmicreach/entities/Entity sendPositionPacket ()V
 
 public method finalforeach/cosmicreach/rendering/BatchCoords blockX ()I
 public method finalforeach/cosmicreach/rendering/BatchCoords blockY ()I
@@ -50,3 +51,5 @@ public field finalforeach/cosmicreach/networking/GamePacket packetNamesToClasses
 public field finalforeach/cosmicreach/world/Zone chunks
 public field finalforeach/cosmicreach/world/Zone lightPropagator
 public method finalforeach/cosmicreach/world/Zone <init> ()V
+public field finalforeach/cosmicreach/rendering/items/ItemRenderer referenceMap
+public field finalforeach/cosmicreach/rendering/items/ItemRenderer modelCreators

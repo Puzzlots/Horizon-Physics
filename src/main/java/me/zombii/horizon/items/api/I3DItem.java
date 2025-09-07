@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader;
 import com.badlogic.gdx.math.Vector3;
-import com.github.puzzle.game.resources.PuzzleGameAssetLoader;
+import dev.puzzleshq.puzzleloader.cosmic.game.util.IndependentAssetLoader;
 import finalforeach.cosmicreach.Threads;
 import finalforeach.cosmicreach.util.Identifier;
 
@@ -15,7 +15,7 @@ public interface I3DItem {
 
     Identifier getModelLocation();
     default void loadModel(G3dModelLoader modelLoader, AtomicReference<ModelInstance> model) {
-        final FileHandle modelHandle = PuzzleGameAssetLoader.locateAsset(getModelLocation());
+        final FileHandle modelHandle = IndependentAssetLoader.loadAsset2(getModelLocation());
 
         Threads.runOnMainThread(() -> {
             Model m = modelLoader.loadModel(modelHandle);

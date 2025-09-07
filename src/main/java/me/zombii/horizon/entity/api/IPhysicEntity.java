@@ -10,20 +10,19 @@ import finalforeach.cosmicreach.networking.server.ServerSingletons;
 import finalforeach.cosmicreach.savelib.crbin.CRBinDeserializer;
 import finalforeach.cosmicreach.savelib.crbin.CRBinSerializer;
 import finalforeach.cosmicreach.world.Zone;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.UUID;
 import java.util.function.Supplier;
 
 public interface IPhysicEntity {
 
-    @NonNull PhysicsBody getBody();
+    PhysicsBody getBody();
 
     Quaternion getEularRotation();
     Quaternion getLastEularRotation();
     void setLastEularRotation(Quaternion rot);
 
-    @NonNull UUID getUUID();
+    UUID getUUID();
     float getMass();
     CollisionShape getCollisionShape();
     default boolean isPickedUp() {

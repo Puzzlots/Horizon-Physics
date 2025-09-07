@@ -1,10 +1,7 @@
 package me.zombii.horizon.util;
 
-import com.github.puzzle.core.Constants;
-import com.github.puzzle.core.loader.meta.EnvType;
 import com.jme3.system.JmeSystem;
 import com.jme3.system.Platform;
-import finalforeach.cosmicreach.io.SaveLocation;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 

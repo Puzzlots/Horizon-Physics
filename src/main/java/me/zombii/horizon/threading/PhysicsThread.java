@@ -1,17 +1,17 @@
 package me.zombii.horizon.threading;
 
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.PauseableThread;
 import com.badlogic.gdx.utils.Queue;
-import com.github.puzzle.core.loader.meta.EnvType;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
 import com.jme3.bullet.objects.PhysicsBody;
 import com.jme3.bullet.objects.PhysicsRigidBody;
 import com.jme3.math.Vector3f;
+import dev.puzzleshq.puzzleloader.loader.LoaderConstants;
+import dev.puzzleshq.puzzleloader.loader.util.EnvType;
 import finalforeach.cosmicreach.blocks.Block;
 import finalforeach.cosmicreach.blocks.BlockState;
 import finalforeach.cosmicreach.entities.Entity;
@@ -235,7 +235,7 @@ public class PhysicsThread implements TickingRunnable {
     public static void init() {
         parent = ThreadHelper.createTicking("physics", new PhysicsThread());
 
-        boolean success = NativeLibraryLoader.loadLibbulletjme(com.github.puzzle.core.Constants.SIDE == EnvType.CLIENT, "Release", "Sp");
+        boolean success = NativeLibraryLoader.loadLibbulletjme(LoaderConstants.SIDE == EnvType.CLIENT, "Release", "Sp");
         if (!success) {
             throw new RuntimeException("Failed to load native library. Please contact nab138, he may need to add support for your platform.");
         }

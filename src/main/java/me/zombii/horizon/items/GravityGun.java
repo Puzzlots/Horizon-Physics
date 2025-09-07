@@ -5,15 +5,16 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.github.puzzle.game.resources.PuzzleGameAssetLoader;
 import com.jme3.bullet.collision.PhysicsRayTestResult;
 import com.jme3.bullet.objects.PhysicsRigidBody;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import finalforeach.cosmicreach.GameSingletons;
+import dev.puzzleshq.puzzleloader.cosmic.game.util.IndependentAssetLoader;
 import finalforeach.cosmicreach.Threads;
+import finalforeach.cosmicreach.blocks.BlockPosition;
 import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.entities.player.Player;
+import finalforeach.cosmicreach.items.ItemSlot;
+import finalforeach.cosmicreach.singletons.GameSingletons;
 import finalforeach.cosmicreach.util.Identifier;
 import io.github.puzzle.cosmic.api.block.IBlockPosition;
 import io.github.puzzle.cosmic.api.entity.player.IPlayer;
@@ -62,8 +63,8 @@ public class GravityGun extends AbstractCosmicItem implements I3DItem {
     }
 
     @Override
-    public boolean pUse(APISide side, IItemSlot itemSlot, IPlayer player, IBlockPosition targetPlaceBlockPos, IBlockPosition targetBreakBlockPos, boolean isLeftClick) {
-        if (side == APISide.SERVER || side == APISide.SINGLE_PLAYER_CLIENT && isLeftClick) {
+    public boolean use(APISide side, ItemSlot itemSlot, Player player, BlockPosition targetPlaceBlockPos, BlockPosition targetBreakBlockPos, boolean isLeftClick) {
+        if (side == APISide.SERVER || side == APISide.SINGLE_PLAYER_CLIENT && !isLeftClick) {
             if (heldEntity != null) {
                 heldEntity.setPickedUp(!heldEntity.isPickedUp());
                 heldEntity = null;
@@ -78,11 +79,10 @@ public class GravityGun extends AbstractCosmicItem implements I3DItem {
             PhysicsUtil.raycast(intersectionPoint, ray, rayEnd, this::interact);
         }
 
-        return super.pUse(side, itemSlot, player, targetPlaceBlockPos, targetBreakBlockPos, isLeftClick);
+        return super.use(side, itemSlot, player, targetPlaceBlockPos, targetBreakBlockPos, isLeftClick);
     }
 
     public void interact(float dist, Entity e, PhysicsRayTestResult result) {
-        System.out.println("E " + ((IPhysicEntity) e).canBePickedUp());
         if (((IPhysicEntity) e).canBePickedUp()) {
             IPhysicEntity entity = (IPhysicEntity) e;
             entity.setPickedUp(!entity.isPickedUp());
@@ -102,7 +102,7 @@ public class GravityGun extends AbstractCosmicItem implements I3DItem {
 
     @Override
     public void loadModel(G3dModelLoader modelLoader, AtomicReference<ModelInstance> model) {
-        final FileHandle modelHandle = PuzzleGameAssetLoader.locateAsset(getModelLocation());
+        final FileHandle modelHandle = IndependentAssetLoader.loadAsset2(getModelLocation());
 
         Threads.runOnMainThread(() -> {
             GLBLoader loader = new GLBLoader();
@@ -112,5 +112,10 @@ public class GravityGun extends AbstractCosmicItem implements I3DItem {
 
             model.set(instance);
         });
+    }
+
+    @Override
+    public Vector3 getScalar() {
+        return new Vector3(.7f, .7f, .7f);
     }
 }

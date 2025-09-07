@@ -4,7 +4,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader;
 import com.badlogic.gdx.math.Vector3;
-import com.github.puzzle.game.resources.PuzzleGameAssetLoader;
+import dev.puzzleshq.puzzleloader.cosmic.game.util.IndependentAssetLoader;
 import finalforeach.cosmicreach.Threads;
 import finalforeach.cosmicreach.util.Identifier;
 import io.github.puzzle.cosmic.item.AbstractCosmicItem;
@@ -40,7 +40,7 @@ public class ToolGun extends AbstractCosmicItem implements I3DItem {
 
     @Override
     public void loadModel(G3dModelLoader modelLoader, AtomicReference<ModelInstance> model) {
-        final FileHandle modelHandle = PuzzleGameAssetLoader.locateAsset(getModelLocation());
+        final FileHandle modelHandle = IndependentAssetLoader.loadAsset2(getModelLocation());
 
         Threads.runOnMainThread(() -> {
             GLBLoader loader = new GLBLoader();

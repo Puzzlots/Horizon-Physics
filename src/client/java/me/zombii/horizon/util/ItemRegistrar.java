@@ -1,8 +1,7 @@
 package me.zombii.horizon.util;
 
 import com.badlogic.gdx.utils.ObjectMap;
-import com.github.puzzle.core.loader.util.Reflection;
-import com.github.puzzle.game.mixins.client.accessors.ItemRenderAccessor;
+import dev.puzzleshq.puzzleloader.loader.util.ReflectionUtil;
 import finalforeach.cosmicreach.items.Item;
 import finalforeach.cosmicreach.rendering.items.ItemModel;
 import finalforeach.cosmicreach.rendering.items.ItemRenderer;
@@ -14,16 +13,17 @@ import me.zombii.horizon.items.model.Item3DModel;
 import java.lang.ref.WeakReference;
 import java.util.function.Function;
 
-import static finalforeach.cosmicreach.items.Item.allItems;
-
 public class ItemRegistrar implements IItemRegistrar{
-
 
     @Override
     public <T extends I3DItem & IItem & Item> void registerItemINST(T item) {
-        allItems.put(item.getID(), item);
-        ItemRenderAccessor.getRefMap().put(item, new WeakReference(item));
-        ObjectMap<Class<? extends Item>, Function<?, ItemModel>> modelCreators = Reflection.getFieldContents(ItemRenderer.class, "modelCreators");
+        ItemRenderer.referenceMap.put(item, new WeakReference<>(item));
+        ObjectMap<Class<? extends Item>, Function<?, ItemModel>> modelCreators = null;
+        try {
+            modelCreators = (ObjectMap<Class<? extends Item>, Function<?, ItemModel>>) ReflectionUtil.getField(ItemRenderer.class, "modelCreators").get(null);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
         if (!modelCreators.containsKey((Class<? extends Item>) item.getClass())) {
             ItemRenderer.registerItemModelCreator((Class<? extends Item>) item.getClass(), (modItem) -> {
                 return CosmicItemModelWrapper.wrap(new Item3DModel(item));

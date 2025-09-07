@@ -5,12 +5,12 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.OrientedBoundingBox;
-import com.github.puzzle.game.util.IClientNetworkManager;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import finalforeach.cosmicreach.blocks.MissingBlockStateResult;
 import finalforeach.cosmicreach.entities.EntityUtils;
-import finalforeach.cosmicreach.entities.IDamageSource;
 import finalforeach.cosmicreach.entities.components.GravityComponent;
+import finalforeach.cosmicreach.entities.player.Player;
+import finalforeach.cosmicreach.singletons.GameSingletons;
 import me.zombii.horizon.entity.api.IPhysicEntity;
 import me.zombii.horizon.entity.api.IVirtualZoneEntity;
 import me.zombii.horizon.rendering.mesh.IMeshInstancer;
@@ -28,7 +28,6 @@ import finalforeach.cosmicreach.savelib.crbin.CRBinSerializer;
 import finalforeach.cosmicreach.world.Zone;
 import me.zombii.horizon.world.PhysicsChunk;
 import me.zombii.horizon.world.PhysicsZone;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import me.zombii.horizon.threading.PhysicsThread;
@@ -57,7 +56,7 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualZo
 
         world = PhysicsZone.create(uuid);
 
-        if (!IClientNetworkManager.isConnected()) {
+        if (GameSingletons.isHost) {
             if (rotation == null) rotation = Quaternion.DIRECTION_Z;
             world = PhysicsZone.create(uuid);
 
@@ -91,7 +90,7 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualZo
         }
 
         modelInstance = null;
-        if (!IClientNetworkManager.isConnected()) {
+        if (GameSingletons.isHost) {
             Threads.runOnMainThread(() -> modelInstance = IMeshInstancer.createZoneMesh(world));
         }
 
@@ -108,9 +107,9 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualZo
     }
 
     @Override
-    public void onAttackInteraction(Entity sourceEntity) {
+    public void onAttackInteraction(Player player, short inventorySlotNum) {
         body.activate(true);
-        body.setLinearVelocity(new Vector3f(sourceEntity.viewDirection.cpy().scl(12).x, sourceEntity.viewDirection.cpy().scl(12).y, sourceEntity.viewDirection.cpy().scl(12).z));
+        body.setLinearVelocity(new Vector3f(player.getEntity().viewDirection.cpy().scl(12).x, player.getEntity().viewDirection.cpy().scl(12).y, player.getEntity().viewDirection.cpy().scl(12).z));
     }
 
     boolean initialized = false;
@@ -177,7 +176,7 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualZo
         world.recalculateBounds();
         getBoundingBox(localBoundingBox);
 
-        if (!IClientNetworkManager.isConnected()) {
+        if (GameSingletons.isHost) {
             body.setPhysicsLocation(new Vector3f(position.x, position.y, position.z));
             body.setPhysicsRotation(rotation);
         }
@@ -214,7 +213,6 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualZo
     }
 
     @Override
-    @NonNull
     public PhysicsBody getBody() {
         return body;
     }
@@ -235,7 +233,6 @@ public class BasicShipEntity extends Entity implements IPhysicEntity, IVirtualZo
     }
 
     @Override
-    @NonNull
     public UUID getUUID() {
         return uuid;
     }

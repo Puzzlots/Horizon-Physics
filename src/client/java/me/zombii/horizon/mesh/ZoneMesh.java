@@ -43,8 +43,6 @@ public class ZoneMesh implements IEntityModelInstance, IHorizonMesh {
             AtomicReference<MeshingThread.VirtualChunkMeshMeta> ref = MeshingThread.post(world, chunk);
             refMap.put(new Vec3i(chunk.chunkX, chunk.chunkY, chunk.chunkZ), ref);
         });
-
-        shader = ChunkShader.DEFAULT_BLOCK_SHADER;
     }
 
     @Override

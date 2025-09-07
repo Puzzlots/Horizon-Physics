@@ -4,7 +4,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader;
-import com.github.puzzle.game.resources.PuzzleGameAssetLoader;
+import dev.puzzleshq.puzzleloader.cosmic.game.util.IndependentAssetLoader;
 import finalforeach.cosmicreach.Threads;
 import finalforeach.cosmicreach.util.Identifier;
 import io.github.puzzle.cosmic.api.util.IIdentifier;
@@ -23,8 +23,8 @@ public class PortalGun extends AbstractCosmicItem implements I3DItem {
     }
 
     @Override
-    public IIdentifier pGetIdentifier() {
-        return (IIdentifier) Identifier.of(HorizonConstants.MOD_ID, "portal_gun");
+    public Identifier getIdentifier() {
+        return Identifier.of(HorizonConstants.MOD_ID, "portal_gun");
     }
 
     @Override
@@ -44,7 +44,7 @@ public class PortalGun extends AbstractCosmicItem implements I3DItem {
 
     @Override
     public void loadModel(G3dModelLoader modelLoader, AtomicReference<ModelInstance> model) {
-        final FileHandle modelHandle = PuzzleGameAssetLoader.locateAsset(getModelLocation());
+        final FileHandle modelHandle = IndependentAssetLoader.loadAsset2(getModelLocation());
 
         Threads.runOnMainThread(() -> {
             Model model1 = modelLoader.loadModel(modelHandle);

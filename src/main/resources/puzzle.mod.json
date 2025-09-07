@@ -1,5 +1,5 @@
 {
-  "formatVersion": 1,
+  "formatVersion": 2,
   "id": "${mod_id}",
   "version": "${mod_version}",
   "name": "${mod_name}",
@@ -14,10 +14,10 @@
     "init": [
       "me.zombii.horizon.Horizon"
     ],
-    "client_preInit": [
+    "client-preInit": [
       "me.zombii.horizon.HorizonClient"
     ],
-    "client_postInit": [
+    "client-postInit": [
       "me.zombii.horizon.HorizonClient"
     ]
   },
@@ -29,8 +29,8 @@
     }
   ],
   "depends": {
-    "cosmic-reach": ">=0.1.50",
-    "puzzle-loader": ">=1.5.5"
+    "cosmic-reach": ">=0.4.17",
+    "cosmic-api": ">=1.3.2"
   },
   "accessTransformers": ["horizon.manipulator"]
 }

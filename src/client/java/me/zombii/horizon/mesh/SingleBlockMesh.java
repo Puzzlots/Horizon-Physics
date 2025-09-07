@@ -19,6 +19,7 @@ import finalforeach.cosmicreach.rendering.meshes.GameMesh;
 import finalforeach.cosmicreach.rendering.meshes.MeshData;
 import finalforeach.cosmicreach.rendering.shaders.ChunkShader;
 import finalforeach.cosmicreach.rendering.shaders.GameShader;
+import finalforeach.cosmicreach.util.Identifier;
 import finalforeach.cosmicreach.world.Sky;
 import me.zombii.horizon.rendering.mesh.IHorizonMesh;
 
@@ -36,8 +37,6 @@ public class SingleBlockMesh implements IEntityModelInstance, IHorizonMesh {
 
     public SingleBlockMesh(AtomicReference<BlockState> state) {
         this.state = state;
-
-        shader = ChunkShader.DEFAULT_BLOCK_SHADER;
     }
 
     @Override
@@ -82,7 +81,8 @@ public class SingleBlockMesh implements IEntityModelInstance, IHorizonMesh {
         Sky.currentSky.getSunDirection(sunDirection);
         sunDirection.rot(rotTmp);
 
-        if (needsRemeshing) {
+        if (needsRemeshing && state.get() != null) {
+            shader = GameShader.getShaderForBlockState(this.state.get());
             MeshData data = new MeshData(shader, RenderOrder.DEFAULT);
             state.get().addVertices(data, 0, 0, 0);
 

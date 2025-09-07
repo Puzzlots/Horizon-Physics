@@ -8,6 +8,7 @@
     "BlockSelectionMixin",
     "InGameMixin",
     "MainMenuMixin",
+    "MixinBlockRaycasts",
     "PauseMenuMixin",
     "ResumeToGameMixin"
   ],

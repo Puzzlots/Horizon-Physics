@@ -1,6 +1,8 @@
 package me.zombii.horizon.items;
 
 import com.badlogic.gdx.math.Vector3;
+import finalforeach.cosmicreach.blocks.BlockPosition;
+import finalforeach.cosmicreach.items.ItemSlot;
 import finalforeach.cosmicreach.util.Identifier;
 import io.github.puzzle.cosmic.api.block.IBlockPosition;
 import io.github.puzzle.cosmic.api.entity.player.IPlayer;
@@ -48,7 +50,7 @@ public class MoonScepter extends AbstractCosmicItem {
     }
 
     @Override
-    public boolean pUse(APISide side, IItemSlot itemSlot, IPlayer player, IBlockPosition targetPlaceBlockPos, IBlockPosition targetBreakBlockPos, boolean isLeftClick) {
+    public boolean use(APISide side, ItemSlot itemSlot, Player player, BlockPosition targetPlaceBlockPos, BlockPosition targetBreakBlockPos, boolean isLeftClick) {
         if((((Player) player).isSneakIntended) && !isLeftClick && (side == APISide.SINGLE_PLAYER_CLIENT || side == APISide.SERVER)){
             //GameSingletons.openBlockEntityScreen(player, player.getZone(GameSingletons.world), this);
             int size = WANDMODES.values().length;
@@ -74,7 +76,7 @@ public class MoonScepter extends AbstractCosmicItem {
 //                convert2(player);
 //            }
 //        }
-        return super.pUse(side, itemSlot, player, targetPlaceBlockPos, targetBreakBlockPos, isLeftClick);
+        return super.use(side, itemSlot, player, targetPlaceBlockPos, targetBreakBlockPos, isLeftClick);
     }
 
     private static Vector3 FindStartingPos(Vector3 pos1, Vector3 pos2, int l, int h, int w){
@@ -145,13 +147,13 @@ public class MoonScepter extends AbstractCosmicItem {
     }
 
     @Override
-    public boolean pIsTool() {
+    public boolean isTool() {
         return true;
     }
 
     @Override
-    public IIdentifier pGetIdentifier() {
-        return (IIdentifier) id;
+    public Identifier getIdentifier() {
+        return id;
     }
 
     @Override

@@ -5,11 +5,11 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.OrientedBoundingBox;
-import com.github.puzzle.game.util.IClientNetworkManager;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import finalforeach.cosmicreach.blocks.MissingBlockStateResult;
 import finalforeach.cosmicreach.entities.EntityUtils;
 import finalforeach.cosmicreach.entities.components.GravityComponent;
+import finalforeach.cosmicreach.singletons.GameSingletons;
 import finalforeach.cosmicreach.util.Identifier;
 import finalforeach.cosmicreach.world.Chunk;
 import me.zombii.horizon.entity.api.IPhysicEntity;
@@ -31,7 +31,6 @@ import finalforeach.cosmicreach.world.Zone;
 import finalforeach.cosmicreach.worldgen.noise.SimplexNoise;
 import me.zombii.horizon.world.PhysicsChunk;
 import me.zombii.horizon.world.PhysicsZone;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
 import me.zombii.horizon.threading.PhysicsThread;
@@ -111,7 +110,7 @@ public class WorldCube extends Entity implements IPhysicEntity, IVirtualZoneEnti
             uuid = UUID.randomUUID();
 
         world = PhysicsZone.create(uuid);
-        if (!IClientNetworkManager.isConnected()) {
+        if (GameSingletons.isHost) {
             for (int x = -4; x < 4; x++) {
                 for (int y = 0; y < 7; y++) {
                     for (int z = -4; z < 4; z++) {
@@ -134,7 +133,7 @@ public class WorldCube extends Entity implements IPhysicEntity, IVirtualZoneEnti
         }
         modelInstance = null;
 
-        if (!IClientNetworkManager.isConnected()) {
+        if (GameSingletons.isHost) {
             Threads.runOnMainThread(() -> modelInstance = IMeshInstancer.createZoneMesh(world));
         }
 
@@ -171,7 +170,7 @@ public class WorldCube extends Entity implements IPhysicEntity, IVirtualZoneEnti
         transform.rotate(1, 0, 1, rotX+=10);
         body.setPhysicsRotation(getEularRotation());
 
-        if (!IClientNetworkManager.isConnected()){
+        if (GameSingletons.isHost){
             MatrixUtil.rotateAroundOrigin2(oBoundingBox, transform, position, rotation);
 
             oBoundingBox.setBounds(world.AABB);
@@ -219,7 +218,7 @@ public class WorldCube extends Entity implements IPhysicEntity, IVirtualZoneEnti
     }
 
     @Override
-    public @NonNull PhysicsBody getBody() {
+    public PhysicsBody getBody() {
         return body;
     }
 
@@ -240,7 +239,7 @@ public class WorldCube extends Entity implements IPhysicEntity, IVirtualZoneEnti
     }
 
     @Override
-    public @NonNull UUID getUUID() {
+    public UUID getUUID() {
         return uuid;
     }
 

@@ -2,11 +2,10 @@ package me.zombii.horizon.world;
 
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
-import com.github.puzzle.core.loader.util.Reflection;
-import com.github.puzzle.game.util.IClientNetworkManager;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
-import finalforeach.cosmicreach.GameSingletons;
+import dev.puzzleshq.puzzleloader.loader.util.ReflectionUtil;
+import finalforeach.cosmicreach.singletons.GameSingletons;
 import finalforeach.cosmicreach.world.*;
 import finalforeach.cosmicreach.worldgen.ZoneGenerator;
 import me.zombii.horizon.HorizonConstants;
@@ -30,9 +29,13 @@ public class PhysicsZone extends Zone {
     public PhysicsZone(World world, String zoneId, ZoneGenerator worldGen) {
         super(world, zoneId, worldGen);
 
-        Reflection.setFieldContents(this, "chunks", new APoint3dMap<>());
+        try {
+            ReflectionUtil.getField(this, "chunks").set(this, new APoint3dMap<>());
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
 
-        if (PhysicsThread.INSTANCE != null && !IClientNetworkManager.isConnected())
+        if (PhysicsThread.INSTANCE != null && GameSingletons.isHost)
             CCS = new CompoundCollisionShape();
     }
 

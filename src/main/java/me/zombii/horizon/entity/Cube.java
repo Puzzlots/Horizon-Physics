@@ -5,7 +5,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.OrientedBoundingBox;
-import com.github.puzzle.game.util.IClientNetworkManager;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
 import com.jme3.bullet.objects.PhysicsBody;
@@ -19,8 +18,10 @@ import finalforeach.cosmicreach.blocks.BlockState;
 import finalforeach.cosmicreach.entities.Entity;
 import finalforeach.cosmicreach.entities.EntityUtils;
 import finalforeach.cosmicreach.entities.IDamageSource;
+import finalforeach.cosmicreach.entities.player.Player;
 import finalforeach.cosmicreach.savelib.crbin.CRBinDeserializer;
 import finalforeach.cosmicreach.savelib.crbin.CRBinSerializer;
+import finalforeach.cosmicreach.singletons.GameSingletons;
 import finalforeach.cosmicreach.world.Zone;
 import me.zombii.horizon.HorizonConstants;
 import me.zombii.horizon.bounds.ExtendedBoundingBox;
@@ -32,7 +33,6 @@ import me.zombii.horizon.threading.PhysicsThread;
 import me.zombii.horizon.util.ConversionUtil;
 import me.zombii.horizon.rendering.mesh.IMeshInstancer;
 import me.zombii.horizon.util.MatrixUtil;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Random;
 import java.util.UUID;
@@ -58,7 +58,7 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
     public Cube() {
         super(HorizonConstants.MOD_ID + ":cube");
 
-        if (!IClientNetworkManager.isConnected()){
+        if (GameSingletons.isHost){
 //            state.set(BlockState.getInstance("base:furnace[lit=off]"));
             state.set(states[new Random().nextInt(0, states.length)]);
             shape = PhysicsThread.INSTANCE.shapeFromBlockState(new CompoundCollisionShape(), new Vector3f(), state.get());
@@ -111,15 +111,14 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
     }
 
     @Override
-    public void onAttackInteraction(Entity sourceEntity) {
-        super.onAttackInteraction(sourceEntity);
+    public void onAttackInteraction(Player player, short inventorySlotNum) {
         setPickedUp(false);
         if (equals(GravityGun.heldEntity)) {
             GravityGun.heldEntity = null;
         }
 
         body.activate(true);
-        body.setLinearVelocity(new Vector3f(sourceEntity.viewDirection.cpy().scl(12).x, sourceEntity.viewDirection.cpy().scl(12).y, sourceEntity.viewDirection.cpy().scl(12).z));
+        body.setLinearVelocity(new Vector3f(player.getEntity().viewDirection.cpy().scl(12).x, player.getEntity().viewDirection.cpy().scl(12).y, player.getEntity().viewDirection.cpy().scl(12).z));
     }
 
     @Override
@@ -134,7 +133,7 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
     public void update(Zone zone, float deltaTime) {
         PhysicsThread.alertChunk(zone.getChunkAtPosition(position));
 
-        if (!IClientNetworkManager.isConnected()) {
+        if (GameSingletons.isHost) {
             MatrixUtil.rotateAroundOrigin3(oBoundingBox, transform, position, rotation);
 
             oBoundingBox.setBounds(rBoundingBox);
@@ -201,10 +200,10 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
             ((IHorizonMesh) modelInstance).setShouldRefresh(true);
         } catch (Exception ignore) {}
 
-        if (!IClientNetworkManager.isConnected()){
+        if (GameSingletons.isHost){
             body.setPhysicsLocation(new Vector3f(position.x, position.y, position.z));
             body.setPhysicsRotation(rotation);
-            body.setCollisionShape(PhysicsThread.INSTANCE.shapeFromBlockState(new CompoundCollisionShape(), new Vector3f(), state.get()));
+            body.setCollisionShape(shape = PhysicsThread.INSTANCE.shapeFromBlockState(new CompoundCollisionShape(), new Vector3f(), state.get()));
             rBoundingBox = ConversionUtil.toBoundingBox(shape);
         }
         getBoundingBox(globalBoundingBox);
@@ -219,7 +218,7 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
     }
 
     @Override
-    public @NonNull PhysicsBody getBody() {
+    public PhysicsBody getBody() {
         return body;
     }
 
@@ -239,7 +238,7 @@ public class Cube extends Entity implements IPhysicEntity, ISingleEntityBlock {
     }
 
     @Override
-    public @NonNull UUID getUUID() {
+    public UUID getUUID() {
         return uuid;
     }
 
