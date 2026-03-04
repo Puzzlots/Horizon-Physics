@@ -29,7 +29,7 @@ dependencies {
     bundle("com.github.mgsx-dev.gdx-gltf:gltf:2.2.1") {
         exclude group: "com.badlogicgames.gdx", module: "gdx"
     }
-    modImplementation("com.github.PuzzlesHQ:cosmic-api:${cosmic_api_version}")
+    modImplementation("com.github.PuzzlesHQ:cosmic-api:${cosmic_api_version}:merged")
     cosmicReach("finalforeach:cosmicreach:$cosmic_reach_version")
 }
 
