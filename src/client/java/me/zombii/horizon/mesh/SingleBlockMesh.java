@@ -75,7 +75,7 @@ public class SingleBlockMesh implements IEntityModelInstance, IHorizonMesh {
     Matrix4 rotTmp = new Matrix4();
 
     @Override
-    public void render(Entity _entity, Camera camera, Matrix4 tmp, boolean shouldRender) {
+    public void render(float deltaTime, Entity _entity, Camera camera, Matrix4 tmp, boolean shouldRender) {
         rotTmp.idt();
         rotTmp.set(tmp.getRotation(new Quaternion()));
         Sky.currentSky.getSunDirection(sunDirection);
@@ -89,36 +89,37 @@ public class SingleBlockMesh implements IEntityModelInstance, IHorizonMesh {
 //            if (BlockModelJson.useIndices) {
 //                mesh = data.toIntIndexedMesh(true);
 //            } else {
-                mesh = data.toSharedIndexMesh(true);
-                if (mesh != null) {
-                    int numIndices = (mesh.getNumVertices() * 6) / 4;
-                    SharedQuadIndexData.allowForNumIndices(numIndices, false);
-                }
+            mesh = data.toSharedIndexMesh(true);
+            if (mesh != null) {
+                int numIndices = (mesh.getNumVertices() * 6) / 4;
+                SharedQuadIndexData.allowForNumIndices(numIndices, false);
+            }
 //            }
             needsRemeshing = false;
         }
 
-        renderBlock(camera, tmp);
+        renderBlock(_entity, camera, tmp);
 
     }
 
-    public void renderBlock(Camera camera, Matrix4 tmp) {
+    public void renderBlock(Entity e, Camera camera, Matrix4 tmp) {
         if (mesh != null) {
 //            if (!BlockModelJson.useIndices) {
-                SharedQuadIndexData.bind();
+            SharedQuadIndexData.bind();
 //            }
 
-            Vector3 batchPos = new Vector3(-.5f, -.5f, -.5f);
+            Vector3 batchPos = new Vector3(0, 0, 0);
             try {
                 this.shader.bind(camera);
                 this.shader.bindOptionalMatrix4("u_projViewTrans", camera.combined);
 //                this.shader.bindOptionalUniform4f("tintColor", Sky.currentSky.currentAmbientColor.cpy());
+
                 this.shader.bindOptionalBool("u_isItem", false);
+
                 this.shader.bindOptionalMatrix4("u_modelMat", tmp);
                 this.shader.bindOptionalUniform3f("u_batchPosition", batchPos);
                 this.shader.bindOptionalUniform3f("u_sunDirection", sunDirection);
-                this.shader.bindOptionalUniform3f("cameraPosition", camera.position);
-                this.shader.bindOptionalInt("u_renderDistanceInChunks", 18);
+                this.shader.bindOptionalUniform3f("cameraPosition", Vector3.Zero);
                 this.shader.bindOptionalFloat("u_fogDensity", 0.0F);
 
                 mesh.bind(this.shader.shader);
@@ -129,7 +130,7 @@ public class SingleBlockMesh implements IEntityModelInstance, IHorizonMesh {
             } catch (Exception ignore) {}
 
 //            if (!BlockModelJson.useIndices) {
-                SharedQuadIndexData.unbind();
+            SharedQuadIndexData.unbind();
 //            }
 
         }
@@ -171,7 +172,17 @@ public class SingleBlockMesh implements IEntityModelInstance, IHorizonMesh {
     }
 
     @Override
+    public float getGlobalAnimTimer() {
+        return 0;
+    }
+
+    @Override
     public void setShouldRefresh(boolean shouldRefresh) {
         needsRemeshing = shouldRefresh;
+    }
+
+    @Override
+    public void dispose() {
+//        mesh.dispose();
     }
 }

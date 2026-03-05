@@ -24,8 +24,8 @@ public class VCosmicMeshingUtil {
     static final Array<MeshData> emptyMeshDatas = new Array(false, 0, MeshData.class);
 
     public static Array<MeshData> getMeshData(PhysicsZone zone, Chunk chunk) {
-        IBlockData<BlockState> blockData = (IBlockData<BlockState>) chunk.getBlockData();
-        BlockState airBlockState = Block.AIR.getDefaultBlockState();
+        IBlockData<BlockState> blockData = chunk.getBlockData();
+        BlockState airBlockState = Block.getById("base:air").getDefaultBlockState();
         if (blockData.isEntirely(airBlockState)) {
             return emptyMeshDatas;
         } else {
@@ -284,13 +284,13 @@ public class VCosmicMeshingUtil {
 
     private static short[] calculateBlockLightLevels(PhysicsZone zone, Chunk chunk, short[] blockLightLevels, boolean hasNeighbouringBlockLightChunks, int opaqueBitmask, int localX, int localY, int localZ) {
         short lightLevel = 0;
-        IBlockLightData blockLightData = chunk.blockLightData;
+//        IBlockLightData blockLightData = chunk.blockLightData;
 //        if (blockLightData == null) {
 //            if (!hasNeighbouringBlockLightChunks || localX > 0 && localY > 0 && localZ > 0 && localX < 15 && localY < 15 && localZ < 15) {
 //                return blockLightLevels;
 //            }
 //        } else {
-            lightLevel = blockLightData.getBlockLight(localX, localY, localZ);
+//            lightLevel = blockLightData.getBlockLight(localX, localY, localZ);
 //        }
 
         Arrays.fill(blockLightLevels, lightLevel);

@@ -6,6 +6,7 @@
   "mixins": [
     "BlockModelJsonMixin",
     "BlockSelectionMixin",
+    "EntityDebugRendererMixin",
     "InGameMixin",
     "MainMenuMixin",
     "MixinBlockRaycasts",

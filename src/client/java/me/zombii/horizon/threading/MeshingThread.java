@@ -27,7 +27,7 @@ public class MeshingThread implements Runnable {
     static final Queue<Runnable> queuedRunnables = new Queue<>();
 
     public static AtomicReference<VirtualChunkMeshMeta> post(AtomicReference<VirtualChunkMeshMeta> ref, PhysicsZone zone, Chunk chunk) {
-        if (chunk.blockData.isEntirely(Block.AIR.getDefaultBlockState()))
+        if (chunk.blockData.isEntirely(Block.getById("base:air").getDefaultBlockState()))
             return ref;
 
         queuedRunnables.addLast(() -> {

@@ -78,7 +78,7 @@ public class ZoneMesh implements IEntityModelInstance, IHorizonMesh {
     Quaternion quaternion = new Quaternion();
 
     @Override
-    public void render(Entity _entity, Camera camera, Matrix4 tmp, boolean unused) {
+    public void render(float deltaTime, Entity _entity, Camera camera, Matrix4 tmp, boolean unused) {
         if (refMap == null) return;
 
         rotTmp.idt();
@@ -109,10 +109,10 @@ public class ZoneMesh implements IEntityModelInstance, IHorizonMesh {
 
             AtomicReference<MeshingThread.VirtualChunkMeshMeta> ref = refMap.get(pos);
 
-            if (chunk.blockData.isEntirely(Block.AIR.getDefaultBlockState()))
+            if (chunk.blockData.isEntirely(Block.getById("base:air").getDefaultBlockState()))
                 return;
 
-            if (((IPhysicChunk) chunk).needsRemeshing()) {
+            if (chunk.getMeshGroup().isFlaggedForRemeshing()) {
                 if (ref == null) {
                     ref = new AtomicReference<>();
                     refMap.put(pos, ref);
@@ -226,7 +226,21 @@ public class ZoneMesh implements IEntityModelInstance, IHorizonMesh {
     }
 
     @Override
+    public float getGlobalAnimTimer() {
+        return 0;
+    }
+
+    @Override
     public void setShouldRefresh(boolean shouldRefresh) {
 
+    }
+
+    @Override
+    public void dispose() {
+        refMap.values().forEach(itemModel -> {
+//            itemModel.get().defaultLayerMesh.dispose();
+//            itemModel.get().transparentLayerMesh.dispose();
+//            itemModel.get().semiTransparentLayerMesh.dispose();
+        });
     }
 }

@@ -2,10 +2,9 @@ package me.zombii.horizon;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import dev.puzzleshq.puzzleloader.cosmic.core.modInitialises.ClientPostModInit;
-import dev.puzzleshq.puzzleloader.cosmic.core.modInitialises.ClientPreModInit;
+import dev.puzzleshq.puzzleloader.loader.mod.entrypoint.client.ClientPostModInit;
+import dev.puzzleshq.puzzleloader.loader.mod.entrypoint.client.ClientPreModInit;
 import finalforeach.cosmicreach.Threads;
-import finalforeach.cosmicreach.blockentities.CustomUIBlockEntity;
 import finalforeach.cosmicreach.blocks.BlockPosition;
 import finalforeach.cosmicreach.items.ISlotContainerParent;
 import finalforeach.cosmicreach.savelib.utils.TriConsumer;

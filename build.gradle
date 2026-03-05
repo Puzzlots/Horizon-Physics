@@ -1,18 +1,18 @@
 plugins {
-    id "java"
-    id "jigsaw"
-    id 'com.gradleup.shadow'
+    id 'java'
+    id 'jigsaw-cosmic-reach'
 }
 
-loom {
-    splitEnvironmentSourceSets()
-    mods {
-        "horizon" {
-            sourceSet sourceSets.main
-            sourceSet sourceSets.client
-        }
-    }
-    accessWidenerPath = file("src/main/resources/horizon.manipulator")
+jigsawGame {
+    splitSourceSets()
+}
+
+jigsawAccess {
+    addManipulators(file("$projectDir/src/common/resources/${p_id}.manipulator"))
+}
+
+jigsawInject {
+    setModJson(file("$projectDir/src/common/resources/puzzle.mod.json"))
 }
 
 repositories {
@@ -23,26 +23,32 @@ repositories {
 }
 
 dependencies {
+    puzzleLoader "dev.puzzleshq:puzzle-loader-core:$puzzle_loader_core_version"
+    puzzleLoader "dev.puzzleshq:puzzle-loader-cosmic:$puzzle_loader_cosmic_version"
+
+    cosmicReach("finalforeach:cosmic-reach:${cosmic_reach_version}")
+
+    commonImplementation "com.github.PuzzlesHQ:cosmic-api:${cosmic_api_version}:merged"
+    clientImplementation "com.github.PuzzlesHQ:cosmic-api:${cosmic_api_version}:merged"
+
 //    implementation(fileTree("./lib"))
-    bundle("com.github.stephengold:Libbulletjme:21.2.1")
-    bundle("commons-io:commons-io:2.16.1")
-    bundle("com.github.mgsx-dev.gdx-gltf:gltf:2.2.1") {
+    clientImplementation commonImplementation("com.github.stephengold:Libbulletjme:21.2.1")
+    clientImplementation commonImplementation("commons-io:commons-io:2.16.1")
+    clientImplementation commonImplementation("com.github.mgsx-dev.gdx-gltf:gltf:2.2.1") {
         exclude group: "com.badlogicgames.gdx", module: "gdx"
     }
-    modImplementation("com.github.PuzzlesHQ:cosmic-api:${cosmic_api_version}")
-    cosmicReach("finalforeach:cosmicreach:$cosmic_reach_version")
 }
 
-processResources {
+processCommonResources {
     // Locations of where to inject the properties
     def resourceTargets = [ "puzzle.mod.json" ]
 
     // Left item is the name in the target, right is the varuable name
     def replaceProperties = [
-            "mod_version"     : version,
-            "mod_desc"       : desc,
-            "mod_name"        : project.name,
-            "mod_id"          : id,
+            "mod_version"     : p_version,
+            "mod_desc"       : p_desc,
+            "mod_name"        : p_name,
+            "mod_id"          : p_id,
     ]
 
 
